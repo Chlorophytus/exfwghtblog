@@ -9,7 +9,8 @@ COPY . /opt/application
 WORKDIR /opt/application
 
 RUN mix local.hex --force && \
-		mix local.rebar --force
+		mix local.rebar --force && \
+		mix deps.get
 
 RUN MIX_ENV=prod mix release
 
