@@ -15,4 +15,4 @@ RUN mix local.hex --force && \
 
 RUN MIX_ENV=prod mix release
 
-CMD ["_build/prod/rel/exfwghtblog/bin/exfwghtblog"]
+CMD ["_build/prod/rel/exfwghtblog/bin/exfwghtblog", "start"]

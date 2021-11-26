@@ -10,7 +10,7 @@ defmodule Exfwghtblog.Application do
     children = [
       # Starts a worker by calling: Exfwghtblog.Worker.start_link(arg)
       # {Exfwghtblog.Worker, arg}
-      {Plug.Cowboy, scheme: :http, plug: Exfwghtblog.Router, port: 8080},
+      {Plug.Cowboy, scheme: :http, plug: Exfwghtblog.Router, port: 80},
 
       Exfwghtblog.AwsAgent
     ]
