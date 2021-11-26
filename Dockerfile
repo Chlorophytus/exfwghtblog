@@ -10,7 +10,8 @@ WORKDIR /opt/application
 
 RUN mix local.hex --force && \
 		mix local.rebar --force && \
-		mix deps.get
+		mix deps.get && \
+		mix deps.compile idna
 
 RUN MIX_ENV=prod mix release
 
