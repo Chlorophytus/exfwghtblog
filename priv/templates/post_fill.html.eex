@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/res/style.css">
+    <title>Exfwghtblog by Chlorophytus</title>
+  </head>
+  <body>
+    <header>
+      Chlorophytus's Blog
+    </header>
+    <main>
+      <%= main %>
+    </main>
+    <footer>
+      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %>
+    </footer>
+  </body>
+</html>
