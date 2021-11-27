@@ -9,22 +9,34 @@ defmodule Exfwghtblog.Router do
   plug(:match)
   plug(:dispatch)
 
+  # ============================================================================
+  # Index
+  get "/" do
+    conn |> fetch_by_path(["res", "index.html"], true)
+  end
+  get "/index.html" do
+    conn |> fetch_by_path(["res", "index.html"], true)
+  end
+  # ============================================================================
+  # Favicon
   get "/favicon.ico" do
     conn |> fetch_by_path(["res", "favicon.ico"], true)
   end
-
+  # ============================================================================
+  # Static resources
   get "/res/:static_resource" do
     conn |> fetch_by_path(["res", static_resource], true)
   end
-
+  # ============================================================================
+  # Blog posts
   get "/posts/" do
     conn |> fetch_all_by_path(["posts"])
   end
-
   get "/posts/:blog_post" do
     conn |> fetch_by_path(["posts", "#{blog_post}.md"])
   end
-
+  # ============================================================================
+  # Nothing of note
   match _ do
     Logger.info("404 fetching unhandled content", conn: inspect(conn))
     conn |> send_resp(404, "404 Not Found\r\n")
