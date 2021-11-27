@@ -7,11 +7,11 @@ defmodule Exfwghtblog.Fetcher do
   @max_fetch 500 # Has to be <1000 because the first key is always the dirname
 
   def fetch(path) do
-    fetch_p(Application.fetch_env!(:exfwghtblog, :bucket), path)
+    fetch_p(System.get_env("S3BUCKET") || :local, path)
   end
 
   def fetch_all(path) do
-    fetch_all_p(Application.fetch_env!(:exfwghtblog, :bucket), path)
+    fetch_all_p(System.get_env("S3BUCKET") || :local, path)
   end
 
   defp fetch_p(:local, relative) do

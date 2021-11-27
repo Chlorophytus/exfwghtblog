@@ -5,10 +5,14 @@ defmodule Exfwghtblog.AwsAgent do
   use Agent
 
   def start_link([]) do
-    idx = Application.fetch_env!(:exfwghtblog, :bucket_idx)
-    key = Application.fetch_env!(:exfwghtblog, :bucket_key)
-    loc = Application.fetch_env!(:exfwghtblog, :bucket_loc)
-    Agent.start_link(fn -> AWS.Client.create(idx, key, loc) end, name: __MODULE__)
+    unless is_nil(System.get_env("S3BUCKET")) do
+      idx = System.get_env("S3BUCKET_IDX")
+      key = System.get_env("S3BUCKET_KEY")
+      loc = System.get_env("S3BUCKET_LOC")
+      Agent.start_link(fn -> AWS.Client.create(idx, key, loc) end, name: __MODULE__)
+    else
+      Agent.start_link(fn -> :local end, name: __MODULE__)
+    end
   end
 
   @doc """
