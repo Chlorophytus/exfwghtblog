@@ -7,13 +7,14 @@
   </head>
   <body>
     <header>
-      Chlorophytus's Blog
+      Chlorophytus Blog
     </header>
     <main>
       <%= main %>
+      <%= if not is_nil(date), do: "<i>Posted #{date}</i>" %>
     </main>
     <footer>
-      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %>
+      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %> - <a href="https://github.com/Chlorophytus/exfwghtblog">Fork me on github!</a>
     </footer>
   </body>
 </html>

@@ -4,7 +4,8 @@ defmodule Exfwghtblog.Fetcher do
   bucket.
   """
 
-  @max_fetch 500 # Has to be <1000 because the first key is always the dirname
+  # Has to be <1000 because the first key is always the dirname
+  @max_fetch 500
 
   def fetch(path) do
     fetch_p(System.get_env("S3BUCKET") || :local, path)
@@ -17,9 +18,25 @@ defmodule Exfwghtblog.Fetcher do
   defp fetch_p(:local, relative) do
     path = Path.join(Application.app_dir(:exfwghtblog, "priv"), relative)
 
-    case File.read(path) do
-      {:ok, data} -> {:ok, :local, data}
-      {:error, error} -> {:error, :local, error}
+    case File.stat(path) do
+      {:ok, stat} ->
+        case File.read(path) do
+          {:ok, data} ->
+            {:ok, :local,
+             %{
+               body: data,
+               posted:
+                 stat.mtime
+                 |> Calendar.DateTime.from_erl!("Etc/UTC")
+                 |> Calendar.DateTime.Format.httpdate()
+             }}
+
+          {:error, error} ->
+            {:error, :local, error}
+        end
+
+      {:error, error} ->
+        {:error, :local, error}
     end
   end
 
@@ -27,8 +44,11 @@ defmodule Exfwghtblog.Fetcher do
     client = Exfwghtblog.AwsAgent.get()
 
     case AWS.S3.get_object(client, bucket, Path.relative(relative)) do
-      {:ok, response, _body} -> {:ok, :remote, response["Body"]}
-      {:error, reason} -> {:error, :remote, reason}
+      {:ok, response, _body} ->
+        {:ok, :remote, %{body: response["Body"], posted: response["Last-Modified"]}}
+
+      {:error, reason} ->
+        {:error, :remote, reason}
     end
   end
 

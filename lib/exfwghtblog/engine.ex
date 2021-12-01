@@ -8,6 +8,6 @@ defmodule Exfwghtblog.Engine do
     :def,
     :post_fill,
     Application.app_dir(:exfwghtblog, Path.join(["priv", "templates", "post_fill.html.eex"])),
-    [:main]
+    [:main, :date]
   )
 end

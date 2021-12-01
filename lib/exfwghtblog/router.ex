@@ -14,33 +14,40 @@ defmodule Exfwghtblog.Router do
   get "/" do
     conn |> fetch_by_path(["res", "index.html"], true)
   end
+
   get "/index.html" do
     conn |> fetch_by_path(["res", "index.html"], true)
   end
+
   # ============================================================================
   # Favicon
   get "/favicon.ico" do
     conn |> fetch_by_path(["res", "favicon.ico"], true)
   end
+
   # ============================================================================
   # Static resources
   get "/res/:static_resource" do
     conn |> fetch_by_path(["res", static_resource], true)
   end
+
   # ============================================================================
   # Blog posts
   get "/posts/" do
     conn |> fetch_all_by_path(["posts"])
   end
+
   get "/posts/:blog_post" do
     conn |> fetch_by_path(["posts", "#{blog_post}.md"])
   end
+
   # ============================================================================
   # Nothing of note
   match _ do
     Logger.info("404 fetching unhandled content", conn: inspect(conn))
     conn |> send_resp(404, "404 Not Found\r\n")
   end
+
   # ============================================================================
   defp fetch_all_by_path(conn, path) do
     case Exfwghtblog.Fetcher.fetch_all(Path.join(List.flatten(["/", path]))) do
@@ -60,7 +67,7 @@ defmodule Exfwghtblog.Router do
             &(&2 <> "- [#{&1}](/posts/#{&1})\r\n")
           )
           |> Earmark.as_html!()
-          |> Exfwghtblog.Engine.post_fill()
+          |> Exfwghtblog.Engine.post_fill(nil)
         )
 
       {:error, fetch_origin, error} ->
@@ -74,6 +81,7 @@ defmodule Exfwghtblog.Router do
         conn |> send_resp(502, "502 Bad Gateway\r\n")
     end
   end
+
   # ============================================================================
   defp fetch_by_path(conn, path, raw \\ false) do
     case Exfwghtblog.Fetcher.fetch(Path.join(List.flatten(["/", path]))) do
@@ -83,9 +91,14 @@ defmodule Exfwghtblog.Router do
           path: inspect(path),
           origin: fetch_origin
         )
+
         cond do
-          raw -> conn |> send_resp(200, content)
-          true -> conn |> send_resp(200, content |> Earmark.as_html!() |> Exfwghtblog.Engine.post_fill())
+          raw ->
+            conn |> send_resp(200, content.body)
+
+          true ->
+            conn
+            |> send_resp(200, content.body |> Earmark.as_html!() |> Exfwghtblog.Engine.post_fill(content.posted))
         end
 
       {:error, fetch_origin, error} ->
