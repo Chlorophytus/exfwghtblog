@@ -45,7 +45,8 @@ defmodule Exfwghtblog.Fetcher do
 
     case AWS.S3.get_object(client, bucket, Path.relative(relative)) do
       {:ok, response, _body} ->
-        {:ok, :remote, %{body: response["Body"], posted: response["Last-Modified"]}}
+        IO.inspect response
+        {:ok, :remote, %{body: response["Body"], posted: response["LastModified"]}}
 
       {:error, reason} ->
         {:error, :remote, reason}
