@@ -1,0 +1,15 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title><%= title %></title>
+    <link><%= link %></link>
+    <description><%= description %></description>
+    <%= for item <- items do %>
+      <item>
+        <title><%= item.title %></title>
+        <link><%= item.link %></link>
+        <description><%= item.description %></description>
+        <pubDate><%= item.publication_date %></pubDate>
+      </item>
+    <% end %>
+  </channel>
+</rss>

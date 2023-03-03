@@ -14,6 +14,7 @@ defmodule ExfwghtblogWeb.PostHTML do
   attr :post_id, :integer
 
   @fetch_limit 5
+  @truncation_limit 80
 
   # ============================================================================
   # Public functions
@@ -46,13 +47,22 @@ defmodule ExfwghtblogWeb.PostHTML do
           %Exfwghtblog.Post{
             id: id,
             title: title,
+            body: body,
             inserted_at: inserted_at,
             updated_at: updated_at
           } ->
+            truncated =
+              if String.length(body) < @truncation_limit do
+                body
+              else
+                "#{body |> String.slice(0..@truncation_limit) |> String.trim_trailing()}..."
+              end
+
             assigns =
               assigns
               |> assign(:post_id, id)
               |> assign(:title, title)
+              |> assign(:summary, truncated)
               |> assign(:inserted, inserted_at)
               |> assign(:updated, updated_at)
 
@@ -60,6 +70,7 @@ defmodule ExfwghtblogWeb.PostHTML do
             <h2 class="font-bold text-xl text-blue-800">
               <.link href={~p"/posts/#{@post_id}"}><%= @title %></.link>
             </h2>
+            <p><%= @summary %></p>
             <p class="text-sm italic">
               <%= gettext("Posted %{post_date}, last update %{edit_date}",
                 post_date: @inserted |> NaiveDateTime.to_string(),
@@ -82,19 +93,19 @@ defmodule ExfwghtblogWeb.PostHTML do
         <%= result %>
         <br />
       <% end %>
-      <div class="w-full grid grid-cols-3">
-        <div>
+      <div class="grid grid-cols-3">
+        <div class="pl-48">
           <%= if @post_id > 0 do %>
             <.link href={~p"/posts?page=#{@post_id - 1}"}>
-              <Heroicons.LiveView.icon name="arrow-left" class="h-6 w-6 left-0" />
+              <.icon name="hero-arrow-left-solid" class="h-6 w-6 left-0" />
             </.link>
           <% end %>
         </div>
-        <div><%= @post_id + 1 %></div>
+        <div class="text-center w-full"><%= @post_id + 1 %></div>
         <div>
           <%= if @post_id < @count do %>
             <.link href={~p"/posts?page=#{@post_id + 1}"}>
-              <Heroicons.LiveView.icon name="arrow-right" class="h-6 w-6 right-0" />
+              <.icon name="hero-arrow-right-solid" class="h-6 w-6 right-0" />
             </.link>
           <% end %>
         </div>
@@ -150,5 +161,16 @@ defmodule ExfwghtblogWeb.PostHTML do
         <p class="text-sm italic"><%= gettext("The post was not found") %></p>
         """
     end
+  end
+
+  def footer(assigns) do
+    ~H"""
+    <p class="text-center text-xs">
+      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %> -
+      <a class="text-blue-800" href="https://github.com/Chlorophytus/exfwghtblog">
+        Fork me on GitHub!
+      </a>
+    </p>
+    """
   end
 end

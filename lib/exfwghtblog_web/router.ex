@@ -21,6 +21,7 @@ defmodule ExfwghtblogWeb.Router do
 
     get "/posts/", PostController, :multi
     get "/posts/:idx", PostController, :single
+    get "/rss", RssController, :fetch
   end
 
   # Other scopes may use custom stacks.

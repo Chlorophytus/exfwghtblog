@@ -29,6 +29,8 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :exfwghtblog, Exfwghtblog.Mailer, adapter: Swoosh.Adapters.Local
 
+config :exfwghtblog, rss_title: "Exfwghtblog", rss_description: "A RSS feed"
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.14.41",
@@ -58,8 +60,6 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-config :ex_heroicons, type: "solid"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
