@@ -14,9 +14,9 @@ defmodule ExfwghtblogWeb.PostController do
   @doc """
   Render multiple post previews on one page
   """
-  def multi(conn, params) do
+  def multi(conn, _params) do
     # page defaults to 0
-    {page, garbage_data} = Integer.parse(conn.query_params["page"] || "0")
+    {page, _garbage_data} = Integer.parse(conn.query_params["page"] || "0")
 
     render(conn, :multi, page: page)
   end

@@ -49,8 +49,14 @@ defmodule ExfwghtblogWeb.PostHTML do
             title: title,
             body: body,
             inserted_at: inserted_at,
-            updated_at: updated_at
+            updated_at: updated_at,
+            poster_id: poster_id
           } ->
+            name =
+              Exfwghtblog.Repo.one(
+                from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
+              )
+
             truncated =
               if String.length(body) < @truncation_limit do
                 body
@@ -65,6 +71,7 @@ defmodule ExfwghtblogWeb.PostHTML do
               |> assign(:summary, truncated)
               |> assign(:inserted, inserted_at)
               |> assign(:updated, updated_at)
+              |> assign(:name, name)
 
             ~H"""
             <h2 class="font-bold text-xl text-blue-800">
@@ -72,7 +79,8 @@ defmodule ExfwghtblogWeb.PostHTML do
             </h2>
             <p><%= @summary %></p>
             <p class="text-sm italic">
-              <%= gettext("Posted %{post_date}, last update %{edit_date}",
+              <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
+                username: @name,
                 post_date: @inserted |> NaiveDateTime.to_string(),
                 edit_date: @updated |> NaiveDateTime.to_string()
               ) %>
@@ -133,21 +141,29 @@ defmodule ExfwghtblogWeb.PostHTML do
         body: body,
         title: title,
         inserted_at: inserted_at,
-        updated_at: updated_at
+        updated_at: updated_at,
+        poster_id: poster_id
       } ->
+        name =
+          Exfwghtblog.Repo.one(
+            from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
+          )
+
         assigns =
           assigns
           |> assign(:body, body)
           |> assign(:title, title)
           |> assign(:inserted, inserted_at)
           |> assign(:updated, updated_at)
+          |> assign(:name, name)
 
         ~H"""
         <h2 class="font-bold text-xl"><%= @title %></h2>
         <p><%= @body %></p>
         <br />
         <p class="text-sm italic">
-          <%= gettext("Posted %{post_date}, last update %{edit_date}",
+          <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
+            username: @name,
             post_date: @inserted |> NaiveDateTime.to_string(),
             edit_date: @updated |> NaiveDateTime.to_string()
           ) %>

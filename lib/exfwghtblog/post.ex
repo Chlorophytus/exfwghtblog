@@ -6,6 +6,7 @@ defmodule Exfwghtblog.Post do
     field :body, :string
     field :deleted, :boolean, default: false
     field :title, :string
+    field :poster_id, :id
 
     timestamps()
   end

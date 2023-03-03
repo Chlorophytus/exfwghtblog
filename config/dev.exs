@@ -77,3 +77,6 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :exfwghtblog, Exfwghtblog.Guardian,
+  secret_key: "mf8+KKpuvl/e3yRgT/MLQw+K8wVwhJVkPr3WtDbKD+5NtkcbCo7TuVhbP2nj6LK+"
