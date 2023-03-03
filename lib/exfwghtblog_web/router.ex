@@ -18,6 +18,9 @@ defmodule ExfwghtblogWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    get "/posts/", PostController, :multi
+    get "/posts/:idx", PostController, :single
   end
 
   # Other scopes may use custom stacks.
