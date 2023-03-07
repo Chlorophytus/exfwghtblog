@@ -2,21 +2,40 @@ defmodule ExfwghtblogWeb.PublishController do
   @moduledoc """
   Controller for publishing blog posts
   """
+  import ExfwghtblogWeb.Gettext
+
   use ExfwghtblogWeb, :controller
 
-  def publish(conn, %{"title" => title, "body" => body}) do
-    user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
-
-    if not is_nil(user) do
-      Exfwghtblog.Repo.insert(%Exfwghtblog.Post{
-        body: body,
-        title: title,
-        poster_id: user.id
-      })
-
-      conn |> send_resp(200, "OK")
+  def publisher(conn, _params) do
+    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
+      render(conn, :publish)
     else
-      conn |> send_resp(401, "Unauthorized")
+      conn
+      |> put_flash(:error, gettext("You are not logged in"))
+      |> redirect(to: "/posts")
+    end
+  end
+
+  def post(conn, %{"title" => title, "body" => body}) do
+    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
+      user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
+
+      {:ok, post} =
+        Exfwghtblog.Repo.insert(%Exfwghtblog.Post{
+          body: body,
+          title: title,
+          poster_id: user.id
+        })
+
+      conn
+      |> fetch_flash()
+      |> put_flash(:info, gettext("Post #%{post_idx} success", post_idx: post.id))
+      |> redirect(to: "/posts")
+    else
+      conn
+      |> fetch_flash()
+      |> put_flash(:error, gettext("You are not logged in"))
+      |> redirect(to: "/posts")
     end
   end
 end

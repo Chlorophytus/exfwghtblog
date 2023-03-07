@@ -33,7 +33,7 @@ $ curl -X POST -H "Content-Type: application/json" -d '{"username":"user","passw
 
 ### How to post
 
-Cookies or HTTP `Authentication` header may be used.
+Cookies or a HTTP `Authorization` header may be used.
 
 ```sh
 $ curl -X POST -H "Content-Type: application/json" -d '{"title":"test","body":"test blog entry 2"}' -b /tmp/exfwghtblog_cookies.txt localhost:4000/secure/publish

@@ -15,36 +15,46 @@ defmodule ExfwghtblogWeb.Router do
     plug :fetch_session
   end
 
-  pipeline :ensure_authenticated do
-    plug Guardian.Plug.Pipeline, module: Exfwghtblog.Guardian, error_handler: ExfwghtblogWeb.AuthController
+  pipeline :determine_authentication do
+    plug Guardian.Plug.Pipeline,
+      module: Exfwghtblog.Guardian,
+      error_handler: ExfwghtblogWeb.AuthController
 
     plug Guardian.Plug.VerifySession, claims: %{"typ" => "access"}
     plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
+  end
+
+  pipeline :ensure_authenticated do
     plug Guardian.Plug.EnsureAuthenticated
     plug Guardian.Plug.LoadResource
   end
 
   scope "/", ExfwghtblogWeb do
-    pipe_through :browser
+    pipe_through [:browser, :determine_authentication]
 
     get "/", PageController, :home
 
     get "/posts/", PostController, :multi
     get "/posts/:idx", PostController, :single
-    get "/rss", RssController, :fetch
+
+    get "/feed", RssController, :fetch
+
+    get "/login", LoginController, :login
+    post "/logout", LoginController, :logout
+
+    get "/publish", PublishController, :publisher
   end
 
-  scope "/", ExfwghtblogWeb do
-    pipe_through :api
+  scope "/api", ExfwghtblogWeb do
+    pipe_through [:api, :determine_authentication]
 
     post "/login", AuthController, :login
-    post "/logout", AuthController, :logout
   end
 
-  scope "/secure", ExfwghtblogWeb do
-    pipe_through [:api, :ensure_authenticated]
+  scope "/api/secure", ExfwghtblogWeb do
+    pipe_through [:api, :determine_authentication, :ensure_authenticated]
 
-    post "/publish", PublishController, :publish
+    post "/publish", PublishController, :post
   end
 
   # Other scopes may use custom stacks.

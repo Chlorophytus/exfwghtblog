@@ -1,0 +1,25 @@
+<.flash_group flash={@flash} />
+<form id="publish-form" method="post" action="/api/secure/publish" class="w-full m-auto">
+  <label for="title">Title</label>
+  <br />
+  <input
+    type="text"
+    id="publish-title"
+    name="title"
+    class="rounded-md p-3 m-4 w-full bg-gray-200 shadow-md"
+  /><br />
+  <label for="body">Body</label>
+  <br />
+  <textarea
+    id="publish-body"
+    rows="8"
+    cols="80"
+    name="body"
+    class="rounded-md p-3 m-4 w-full bg-gray-200 shadow-md"
+  /><br />
+  <input
+    type="submit"
+    value="Publish"
+    class="bg-yellow-100 hover:bg-yellow-200 rounded-full p-3 m-4 w-full shadow-md"
+  />
+</form>

@@ -47,7 +47,7 @@ defmodule ExfwghtblogWeb.PostHTML do
           %Exfwghtblog.Post{
             id: id,
             title: title,
-            body: body,
+            body: full_body,
             inserted_at: inserted_at,
             updated_at: updated_at,
             poster_id: poster_id
@@ -56,6 +56,14 @@ defmodule ExfwghtblogWeb.PostHTML do
               Exfwghtblog.Repo.one(
                 from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
               )
+
+            full_body = full_body |> String.split("\r\n", parts: 2)
+
+            body =
+              case full_body do
+                [synopsis, _] -> synopsis
+                [synopsis] -> synopsis
+              end
 
             truncated =
               if String.length(body) < @truncation_limit do
@@ -111,7 +119,7 @@ defmodule ExfwghtblogWeb.PostHTML do
         </div>
         <div class="text-center w-full"><%= @post_id + 1 %></div>
         <div>
-          <%= if @post_id < @count do %>
+          <%= if @post_id < (@count - 1) do %>
             <.link href={~p"/posts?page=#{@post_id + 1}"}>
               <.icon name="hero-arrow-right-solid" class="h-6 w-6 right-0" />
             </.link>
@@ -149,9 +157,10 @@ defmodule ExfwghtblogWeb.PostHTML do
             from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
           )
 
+        # Need to make line breaks \r\n style to HTML...
         assigns =
           assigns
-          |> assign(:body, body)
+          |> assign(:body, body |> Phoenix.HTML.Format.text_to_html())
           |> assign(:title, title)
           |> assign(:inserted, inserted_at)
           |> assign(:updated, updated_at)
@@ -177,16 +186,5 @@ defmodule ExfwghtblogWeb.PostHTML do
         <p class="text-sm italic"><%= gettext("The post was not found") %></p>
         """
     end
-  end
-
-  def footer(assigns) do
-    ~H"""
-    <p class="text-center text-xs">
-      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %> -
-      <a class="text-blue-800" href="https://github.com/Chlorophytus/exfwghtblog">
-        Fork me on GitHub!
-      </a>
-    </p>
-    """
   end
 end

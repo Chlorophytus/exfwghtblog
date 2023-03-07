@@ -18,6 +18,7 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
+import Alpine from "alpinejs"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
@@ -38,4 +39,49 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+window.Alpine = Alpine;
+Alpine.start();
 
+function showLoginError(form, message) {
+    function createLoginError() {
+        let error = document.createElement("div");
+        error.id = "login-result";
+        ["bg-red-100", "rounded-full", "p-4", "m-4", "w-full", "shadow-md"].map((cl) => { error.classList.add(cl) });
+        form.appendChild(error);
+        return error;
+    }
+    let loginError = document.getElementById("login-result") ?? createLoginError();
+    loginError.innerText = message;
+}
+
+let form = document.getElementById("login-form");
+if(form !== null) {
+    form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const request = new Request("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: document.getElementById("login-username").value,
+                password: document.getElementById("login-password").value
+            })
+        });
+        const response = await fetch(request);
+        if(response.ok) {
+            showLoginError(form, "Login success");
+            await new Promise((resolve) => {
+                setTimeout(() => { resolve() }, 1000);
+            }).then(() => {
+                window.location.replace("/posts");
+            });
+        } else {
+            response.json().then((json) => {
+                showLoginError(form, json.info);
+            }).catch((error) => {
+                showLoginError(form, "Client error");
+            });
+        }
+    })
+}
