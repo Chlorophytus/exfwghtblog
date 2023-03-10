@@ -3,6 +3,7 @@ defmodule ExfwghtblogWeb.AuthController do
   Controller for logging in users
   """
   import Ecto.Query
+  import ExfwghtblogWeb.Gettext
   use ExfwghtblogWeb, :controller
 
   # How many minutes should we keep the user logged in?
@@ -36,7 +37,7 @@ defmodule ExfwghtblogWeb.AuthController do
 
       conn
       |> put_resp_content_type("application/json")
-      |> send_resp(401, Jason.encode!(%{ok: false, info: "Authentication failed"}))
+      |> send_resp(401, Jason.encode!(%{ok: false, info: gettext("Authentication failed")}))
     end
   end
 
@@ -47,7 +48,7 @@ defmodule ExfwghtblogWeb.AuthController do
     |> put_resp_content_type("application/json")
     |> send_resp(
       500,
-      Jason.encode!(%{ok: false, info: "A server error occured while authenticating"})
+      Jason.encode!(%{ok: false, info: gettext("A server error occured while authenticating")})
     )
   end
 end

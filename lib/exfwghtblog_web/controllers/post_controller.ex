@@ -7,7 +7,7 @@ defmodule ExfwghtblogWeb.PostController do
   @doc """
   Render a single blog post on one page
   """
-  def single(conn, %{"idx" => idx} = params) do
+  def single(conn, %{"idx" => idx}) do
     render(conn, :single, idx: idx)
   end
 
