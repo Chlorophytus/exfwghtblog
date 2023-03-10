@@ -46,7 +46,7 @@ function showLoginError(form, message) {
     function createLoginError() {
         let error = document.createElement("div");
         error.id = "login-result";
-        ["bg-red-100", "rounded-full", "p-4", "m-4", "w-full", "shadow-md"].map((cl) => { error.classList.add(cl) });
+        error.className = "bg-red-100 rounded-full p-4 m-4 w-full shadow-md";
         form.appendChild(error);
         return error;
     }
