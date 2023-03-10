@@ -43,12 +43,23 @@ defmodule ExfwghtblogWeb.AuthController do
 
   @behaviour Guardian.Plug.ErrorHandler
   @impl Guardian.Plug.ErrorHandler
-  def auth_error(conn, {_type, _reason}, _opts) do
-    conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(
-      500,
-      Jason.encode!(%{ok: false, info: gettext("A server error occured while authenticating")})
-    )
+  def auth_error(conn, info = {type, reason}, _opts) do
+    case info do
+      {:invalid_token, :token_expired} ->
+        conn
+        |> fetch_session()
+        |> Exfwghtblog.Guardian.Plug.sign_out()
+        |> fetch_flash()
+        |> put_flash(:info, gettext("You have been signed out"))
+        |> redirect(to: "/posts")
+
+      _other ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(
+          500,
+          Jason.encode!(%{ok: false, info: gettext("A server error occured while authenticating")})
+        )
+    end
   end
 end

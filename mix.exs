@@ -51,7 +51,8 @@ defmodule Exfwghtblog.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:guardian, "~> 2.3"},
-      {:argon2_elixir, "~> 3.0"}
+      {:argon2_elixir, "~> 3.0"},
+      {:earmark_parser, "~> 1.4"}
     ]
   end
 

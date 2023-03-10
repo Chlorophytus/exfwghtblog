@@ -16,9 +16,6 @@ defmodule ExfwghtblogWeb.PostHTML do
   @fetch_limit 5
   @truncation_limit 80
 
-  # ============================================================================
-  # Public functions
-  # ============================================================================
   def multi_post(%{post_id: post_id} = assigns) do
     all_count = Exfwghtblog.Repo.aggregate(Exfwghtblog.Post, :count)
 
@@ -157,10 +154,12 @@ defmodule ExfwghtblogWeb.PostHTML do
             from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
           )
 
+        {:ok, markdown_ast, _errors} = body |> EarmarkParser.as_ast()
+
         # Need to make line breaks \r\n style to HTML...
         assigns =
           assigns
-          |> assign(:body, body |> Phoenix.HTML.Format.text_to_html())
+          |> assign(:body, markdown_ast |> Exfwghtblog.Markdown.traverse())
           |> assign(:title, title)
           |> assign(:inserted, inserted_at)
           |> assign(:updated, updated_at)
@@ -168,7 +167,7 @@ defmodule ExfwghtblogWeb.PostHTML do
 
         ~H"""
         <h2 class="font-bold text-xl"><%= @title %></h2>
-        <p><%= @body %></p>
+        <p><%= raw(@body) %></p>
         <br />
         <p class="text-sm italic">
           <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
