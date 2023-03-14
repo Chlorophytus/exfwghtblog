@@ -1,4 +1,7 @@
 defmodule Exfwghtblog.Markdown do
+  @moduledoc """
+  Converts `EarmarkParser` Abstract Syntax Trees to HTML or plain text
+  """
   # ============================================================================
   # Traversal of elements
   # ============================================================================
@@ -56,5 +59,7 @@ defmodule Exfwghtblog.Markdown do
   def inject_classes("h5"), do: "font-bold text-md italic"
   def inject_classes("h6"), do: "font-bold text-md italic"
   def inject_classes("a"), do: "font-bold text-blue-800"
+  def inject_classes("blockquote"), do: "p-4"
+  def inject_classes("code"), do: "p-4"
   def inject_classes(_other), do: nil
 end

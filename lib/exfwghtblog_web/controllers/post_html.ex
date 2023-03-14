@@ -44,7 +44,7 @@ defmodule ExfwghtblogWeb.PostHTML do
           %Exfwghtblog.Post{
             id: id,
             title: title,
-            body: full_body,
+            summary: summary,
             inserted_at: inserted_at,
             updated_at: updated_at,
             poster_id: poster_id
@@ -54,19 +54,11 @@ defmodule ExfwghtblogWeb.PostHTML do
                 from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
               )
 
-            full_body = full_body |> String.split("\r\n", parts: 2)
-
-            body =
-              case full_body do
-                [synopsis, _] -> synopsis
-                [synopsis] -> synopsis
-              end
-
             truncated =
-              if String.length(body) < @truncation_limit do
-                body
+              if String.length(summary) < @truncation_limit do
+                summary
               else
-                "#{body |> String.slice(0..@truncation_limit) |> String.trim_trailing()}..."
+                "#{summary |> String.slice(0..@truncation_limit) |> String.trim_trailing()}..."
               end
 
             assigns =
@@ -143,6 +135,7 @@ defmodule ExfwghtblogWeb.PostHTML do
         """
 
       %Exfwghtblog.Post{
+        summary: summary,
         body: body,
         title: title,
         inserted_at: inserted_at,
@@ -159,6 +152,7 @@ defmodule ExfwghtblogWeb.PostHTML do
         # Need to make line breaks \r\n style to HTML...
         assigns =
           assigns
+          |> assign(:summary, summary)
           |> assign(:body, markdown_ast |> Exfwghtblog.Markdown.traverse())
           |> assign(:title, title)
           |> assign(:inserted, inserted_at)
@@ -167,6 +161,8 @@ defmodule ExfwghtblogWeb.PostHTML do
 
         ~H"""
         <h2 class="font-bold text-xl"><%= @title %></h2>
+        <p><%= @summary %></p>
+        <br />
         <p><%= raw(@body) %></p>
         <br />
         <p class="text-sm italic">

@@ -5,6 +5,7 @@ defmodule Exfwghtblog.Post do
   schema "posts" do
     field :body, :string
     field :deleted, :boolean, default: false
+    field :summary, :string
     field :title, :string
     field :poster_id, :id
 
@@ -14,7 +15,7 @@ defmodule Exfwghtblog.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :body, :deleted])
-    |> validate_required([:title, :body, :deleted])
+    |> cast(attrs, [:title, :body, :deleted, :summary])
+    |> validate_required([:title, :body, :deleted, :summary])
   end
 end

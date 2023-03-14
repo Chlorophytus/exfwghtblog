@@ -37,23 +37,15 @@ defmodule ExfwghtblogWeb.RssController do
   defp prepare_result(%Exfwghtblog.Post{
          id: id,
          title: title,
-         body: full_body,
+         summary: summary,
          inserted_at: inserted_at
        }) do
     url = Phoenix.VerifiedRoutes.url(~p"/posts/#{id}")
 
-    full_body = full_body |> String.split("\r\n", parts: 2)
-
-    body =
-      case full_body do
-        [synopsis, _] -> synopsis <> "..."
-        [synopsis] -> synopsis
-      end
-
     %{
       title: title,
       link: url,
-      description: body,
+      description: summary,
       publication_date: inserted_at |> Exfwghtblog.RssBuilder.format_utc_to_rfc822()
     }
   end

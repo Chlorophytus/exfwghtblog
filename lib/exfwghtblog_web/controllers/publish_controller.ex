@@ -16,14 +16,15 @@ defmodule ExfwghtblogWeb.PublishController do
     end
   end
 
-  def post(conn, %{"title" => title, "body" => body}) do
+  def post(conn, %{"title" => title, "summary" => summary, "body" => body}) do
     if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
       user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
 
       {:ok, post} =
         Exfwghtblog.Repo.insert(%Exfwghtblog.Post{
-          body: body,
           title: title,
+          summary: summary,
+          body: body,
           poster_id: user.id
         })
 
