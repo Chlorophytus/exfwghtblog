@@ -19,7 +19,8 @@ defmodule Exfwghtblog.MixProject do
   def application do
     [
       mod: {Exfwghtblog.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon],
+      env: [dev_routes: Mix.env() == :dev]
     ]
   end
 
@@ -32,7 +33,7 @@ defmodule Exfwghtblog.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.1"},
+      {:phoenix, "~> 1.7.2"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
@@ -41,8 +42,8 @@ defmodule Exfwghtblog.MixProject do
       {:phoenix_live_view, "~> 0.18.16"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.7.2"},
-      {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.1.8", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 0.6"},
@@ -52,7 +53,10 @@ defmodule Exfwghtblog.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:guardian, "~> 2.3"},
       {:argon2_elixir, "~> 3.0"},
-      {:earmark_parser, "~> 1.4"}
+      {:earmark_parser, "~> 1.4"},
+      {:ecto_psql_extras, "~> 0.6", only: :dev},
+
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 

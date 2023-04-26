@@ -50,7 +50,7 @@ defmodule ExfwghtblogWeb.AuthController do
         |> fetch_session()
         |> Exfwghtblog.Guardian.Plug.sign_out()
         |> fetch_flash()
-        |> put_flash(:error, gettext("You have been signed out for inactivity"))
+        |> put_flash(:error, gettext("You were signed out due to inactivity"))
         |> redirect(to: "/")
 
       _other ->
