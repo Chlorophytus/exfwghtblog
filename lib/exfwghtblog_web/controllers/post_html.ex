@@ -12,6 +12,7 @@ defmodule ExfwghtblogWeb.PostHTML do
 
   # Post ID is a natural number attribute
   attr :post_id, :integer
+  attr :signed_in, :boolean
 
   @fetch_limit 5
   @truncation_limit 80
@@ -38,7 +39,9 @@ defmodule ExfwghtblogWeb.PostHTML do
         case result do
           %Exfwghtblog.Post{deleted: true} ->
             ~H"""
-            <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
+            <div class="bg-slate-100 p-6 shadow-md">
+              <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
+            </div>
             """
 
           %Exfwghtblog.Post{
@@ -71,17 +74,25 @@ defmodule ExfwghtblogWeb.PostHTML do
               |> assign(:name, name)
 
             ~H"""
-            <h2 class="font-bold text-xl text-blue-800">
-              <.link href={~p"/posts/#{@post_id}"}><%= @title %></.link>
-            </h2>
-            <p><%= @summary %></p>
-            <p class="text-sm italic">
-              <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
-                username: @name,
-                post_date: @inserted |> NaiveDateTime.to_string(),
-                edit_date: @updated |> NaiveDateTime.to_string()
-              ) %>
-            </p>
+            <div class="bg-slate-100 p-6 shadow-md">
+              <h2 class="font-bold text-xl">
+                <.link class="text-blue-800" href={~p"/posts/#{@post_id}"}><%= @title %></.link>
+                <%= if @signed_in do %>
+                  <span class="float-right">
+                    <.icon name="hero-pencil-solid" />
+                    <.icon name="hero-trash-solid" />
+                  </span>
+                <% end %>
+              </h2>
+              <p><%= @summary %></p>
+              <p class="text-sm italic">
+                <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
+                  username: @name,
+                  post_date: @inserted |> NaiveDateTime.to_string(),
+                  edit_date: @updated |> NaiveDateTime.to_string()
+                ) %>
+              </p>
+            </div>
             """
 
           _other ->
@@ -129,9 +140,11 @@ defmodule ExfwghtblogWeb.PostHTML do
     case result do
       %Exfwghtblog.Post{deleted: true} ->
         ~H"""
-        <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
-        <br />
-        <p class="text-sm italic"><%= gettext("This post has been deleted") %></p>
+        <div class="bg-slate-100 p-6 shadow-md">
+          <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
+          <br />
+          <p class="text-sm italic"><%= gettext("This post has been deleted") %></p>
+        </div>
         """
 
       %Exfwghtblog.Post{
@@ -160,25 +173,33 @@ defmodule ExfwghtblogWeb.PostHTML do
           |> assign(:name, name)
 
         ~H"""
-        <h2 class="font-bold text-xl"><%= @title %></h2>
-        <p><%= @summary %></p>
-        <br />
-        <p><%= raw(@body) %></p>
-        <br />
-        <p class="text-sm italic">
-          <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
-            username: @name,
-            post_date: @inserted |> NaiveDateTime.to_string(),
-            edit_date: @updated |> NaiveDateTime.to_string()
-          ) %>
+        <div class="bg-slate-100 p-6 shadow-md">
+          <span class="float-right">
+            <.icon name="hero-pencil-solid" />
+            <.icon name="hero-trash-solid" />
+          </span>
+          <h2 class="font-bold text-xl"><%= @title %></h2>
+          <p><%= @summary %></p>
+          <br />
+          <p><%= raw(@body) %></p>
+          <br />
+          <p class="text-sm italic">
+            <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
+              username: @name,
+              post_date: @inserted |> NaiveDateTime.to_string(),
+              edit_date: @updated |> NaiveDateTime.to_string()
+            ) %>
         </p>
+        </div>
         """
 
       _other ->
         ~H"""
-        <h2 class="font-bold text-xl"><%= gettext("Not found") %></h2>
-        <br />
-        <p class="text-sm italic"><%= gettext("The post was not found") %></p>
+        <div class="bg-slate-100 p-6 shadow-md">
+          <h2 class="font-bold text-xl"><%= gettext("Not found") %></h2>
+          <br />
+          <p class="text-sm italic"><%= gettext("The post was not found") %></p>
+        </div>
         """
     end
   end

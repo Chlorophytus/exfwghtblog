@@ -8,7 +8,7 @@ defmodule ExfwghtblogWeb.PostController do
   Render a single blog post on one page
   """
   def single(conn, %{"idx" => idx}) do
-    render(conn, :single, idx: idx)
+    render(conn, :single, idx: idx, signed_in: Exfwghtblog.Guardian.Plug.authenticated?(conn))
   end
 
   @doc """
@@ -18,6 +18,6 @@ defmodule ExfwghtblogWeb.PostController do
     # page defaults to 0
     {page, _garbage_data} = Integer.parse(conn.query_params["page"] || "0")
 
-    render(conn, :multi, page: page)
+    render(conn, :multi, page: page, signed_in: Exfwghtblog.Guardian.Plug.authenticated?(conn))
   end
 end
