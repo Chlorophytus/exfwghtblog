@@ -11,6 +11,8 @@ import Config
 # before starting your production server.
 config :exfwghtblog, ExfwghtblogWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
+# DISABLE dev routes for dashboard and mailbox
+config :exfwghtblog, dev_routes: false
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Exfwghtblog.Finch

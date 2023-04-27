@@ -1,21 +1,6 @@
 # Exfwghtblog
 
-To start your Phoenix server:
-
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
-
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
-
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+Elixir Featherweight Blog
 
 ## Testing Exfwghtblog
 
@@ -25,16 +10,11 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 iex> Exfwghtblog.Administration.new_user(user, password)
 ```
 
-### How to log in
+Be warned that all registered accounts have posting privileges.
 
-```sh
-$ curl -X POST -H "Content-Type: application/json" -d '{"username":"user","password":"password"}' -c /tmp/exfwghtblog_cookies.txt localhost:4000/login
+### Example Podman configuration
+
+Using an environment file `.env.txt`
 ```
-
-### How to post
-
-Cookies or a HTTP `Authorization` header may be used.
-
-```sh
-$ curl -X POST -H "Content-Type: application/json" -d '{"title":"test","body":"test blog entry 2"}' -b /tmp/exfwghtblog_cookies.txt localhost:4000/secure/publish
+$ podman run --net=host --env-file=.env.txt CONTAINER_ID /app/bin/exfwghtblog start
 ```

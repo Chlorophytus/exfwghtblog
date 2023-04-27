@@ -7,6 +7,16 @@ defmodule Exfwghtblog.Application do
 
   @impl true
   def start(_type, _args) do
+    :persistent_term.put(
+      Exfwghtblog.Version,
+      case Application.get_env(:exfwghtblog, :commit_sha_result) do
+        {sha, 0} ->
+          "#{Application.spec(:exfwghtblog, :vsn)}-#{sha |> String.replace_trailing("\n", "")}"
+
+        _ ->
+          Application.spec(:exfwghtblog, :vsn)
+      end
+    )
     children = [
       # Start the Telemetry supervisor
       ExfwghtblogWeb.Telemetry,

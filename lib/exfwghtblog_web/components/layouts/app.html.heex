@@ -41,7 +41,7 @@
     <%= @inner_content %>
     <br />
     <p class="text-center text-xs">
-      Exfwghtblog v<%= Application.spec(:exfwghtblog, :vsn) %> -
+      Exfwghtblog v<%= :persistent_term.get(Exfwghtblog.Version) %> -
       <a class="text-blue-800" href="https://github.com/Chlorophytus/exfwghtblog">
         Fork me on GitHub!
       </a>

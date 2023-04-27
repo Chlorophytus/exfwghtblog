@@ -71,6 +71,8 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :exfwghtblog, dev_routes: true
 
+config :exfwghtblog, commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"])
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 
