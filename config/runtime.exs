@@ -27,8 +27,17 @@ if config_env() == :prod do
       environment variable DATABASE_URL is missing.
       For example: ecto://USER:PASS@HOST/DATABASE
       """
+  guardian_secret = System.get_env("SECRET_KEY_GUARDIAN") ||
+      raise """
+      environment variable SECRET_KEY_GUARDIAN is missing.
+      You can generate one by calling: mix guardian.gen.secret
+      """
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
+
+  config :exfwghtblog, Exfwghtblog.Guardian,
+    secret_key: guardian_secret
 
   config :exfwghtblog, Exfwghtblog.Repo,
     # ssl: true,
