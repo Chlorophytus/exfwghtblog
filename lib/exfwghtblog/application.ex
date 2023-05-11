@@ -17,6 +17,7 @@ defmodule Exfwghtblog.Application do
           Application.spec(:exfwghtblog, :vsn)
       end
     )
+
     children = [
       # Start the Telemetry supervisor
       ExfwghtblogWeb.Telemetry,
@@ -27,9 +28,11 @@ defmodule Exfwghtblog.Application do
       # Start Finch
       {Finch, name: Exfwghtblog.Finch},
       # Start the Endpoint (http/https)
-      ExfwghtblogWeb.Endpoint
+      ExfwghtblogWeb.Endpoint,
       # Start a worker by calling: Exfwghtblog.Worker.start_link(arg)
       # {Exfwghtblog.Worker, arg}
+
+      Exfwghtblog.RssBuilder
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

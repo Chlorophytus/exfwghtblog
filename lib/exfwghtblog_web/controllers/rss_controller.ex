@@ -25,12 +25,12 @@ defmodule ExfwghtblogWeb.RssController do
     |> put_resp_content_type("application/rss+xml")
     |> send_resp(
       200,
-      Exfwghtblog.RssBuilder.build_feed(
-        Application.fetch_env!(:exfwghtblog, :rss_title),
-        Phoenix.VerifiedRoutes.url(~p"/posts"),
-        Application.fetch_env!(:exfwghtblog, :rss_description),
-        buildable_results
-      )
+      Exfwghtblog.RssBuilder.build_feed(%{
+        title: Application.fetch_env!(:exfwghtblog, :rss_title),
+        link: Phoenix.VerifiedRoutes.url(~p"/posts"),
+        description: Application.fetch_env!(:exfwghtblog, :rss_description),
+        items: buildable_results
+      })
     )
   end
 

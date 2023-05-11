@@ -189,7 +189,7 @@ defmodule ExfwghtblogWeb.PostHTML do
               post_date: @inserted |> NaiveDateTime.to_string(),
               edit_date: @updated |> NaiveDateTime.to_string()
             ) %>
-        </p>
+          </p>
         </div>
         """
 

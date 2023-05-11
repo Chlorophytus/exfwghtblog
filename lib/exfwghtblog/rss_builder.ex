@@ -3,13 +3,54 @@ defmodule Exfwghtblog.RssBuilder do
   Uses EEx to build an RSS feed.
   """
   require EEx
+  require Logger
+  use GenServer
 
-  EEx.function_from_file(:def, :build_feed, "lib/exfwghtblog/rss_builder/template.eex", [
-    :title,
-    :link,
-    :description,
-    :items
-  ])
+  # ===========================================================================
+  # Callbacks
+  # ===========================================================================
+  @impl true
+  def init(_args) do
+    {:ok, reload_generator()}
+  end
+
+  @impl true
+  def handle_call(
+        {:build_feed, %{title: title, link: link, description: description, items: items}},
+        _from,
+        %{generator: generator} = state
+      ) do
+    Logger.debug("RSS feed is being built")
+
+    {result, _bindings} =
+      Code.eval_quoted(generator, title: title, link: link, description: description, items: items)
+
+    {:reply, result, state}
+  end
+
+  @impl true
+  def code_change(_old_vsn, _state, _extra) do
+    {:ok, reload_generator()}
+  end
+
+  # ===========================================================================
+  # Public functions
+  # ===========================================================================
+  @doc """
+  Initializes the RSS builder process
+  """
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  end
+
+  @doc """
+  Builds the RSS feed
+
+  See "lib/exfwghtblog/rss_builder/template.eex" for the full EEx template
+  """
+  def build_feed(args) do
+    GenServer.call(__MODULE__, {:build_feed, args})
+  end
 
   @doc """
   Formats a UTC `DateTime` to RFC 822 format
@@ -29,12 +70,25 @@ defmodule Exfwghtblog.RssBuilder do
   end
 
   # ===========================================================================
-  # Private functions.
+  # Deprecated public functions
+  # ===========================================================================
+  @deprecated "Use build_feed/1 instead"
+  def build_feed(title, link, description, items) do
+    build_feed(%{title: title, link: link, description: description, items: items})
+  end
+
+  # ===========================================================================
+  # Private functions
   #
   # NOTE: These let-it-crash when invalid data is given.
   #
   # NOTE: Also, Credo seems to like these sorts of calls instead of using case.
   # ===========================================================================
+  defp reload_generator() do
+    Logger.notice("RSS template is being reloaded")
+    %{generator: EEx.compile_file("lib/exfwghtblog/rss_builder/template.eex")}
+  end
+
   defp get_day_of_week(1), do: "Mon"
   defp get_day_of_week(2), do: "Tue"
   defp get_day_of_week(3), do: "Wed"
