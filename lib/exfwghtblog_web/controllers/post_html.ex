@@ -10,32 +10,17 @@ defmodule ExfwghtblogWeb.PostHTML do
   # Embed post templates here, we don't need to do anything special
   embed_templates "post_html/*"
 
-  # Post ID is a natural number attribute
-  attr :post_id, :integer
+  attr :batch_result, :any
   attr :signed_in, :boolean
 
-  @fetch_limit 5
   @truncation_limit 80
 
-  def multi_post(%{post_id: post_id} = assigns) do
-    all_count = Exfwghtblog.Repo.aggregate(Exfwghtblog.Post, :count)
-
+  def multi_post(%{batch_result: batch_result} = assigns) do
     assigns =
-      assigns
-      |> assign(:count, div(all_count, @fetch_limit))
-
-    multi_id = all_count - post_id * @fetch_limit
-
-    results =
-      Exfwghtblog.Repo.all(
-        from p in Exfwghtblog.Post,
-          order_by: [desc: p.id],
-          where: p.id <= ^multi_id,
-          limit: @fetch_limit
-      )
+      assigns |> assign(count: batch_result.page_count) |> assign(offset: batch_result.page_offset)
 
     results_heex =
-      for result <- results do
+      for result <- batch_result.fetched do
         case result do
           %Exfwghtblog.Post{deleted: true} ->
             ~H"""
@@ -111,16 +96,16 @@ defmodule ExfwghtblogWeb.PostHTML do
       <% end %>
       <div class="grid grid-cols-3">
         <div class="pl-48">
-          <%= if @post_id > 0 do %>
-            <.link href={~p"/posts?page=#{@post_id - 1}"}>
+          <%= if @offset > 0 do %>
+            <.link href={~p"/posts?page=#{@offset - 1}"}>
               <.icon name="hero-arrow-left-solid" class="h-6 w-6 left-0" />
             </.link>
           <% end %>
         </div>
-        <div class="text-center w-full"><%= @post_id + 1 %></div>
+        <div class="text-center w-full"><%= @offset + 1 %></div>
         <div>
-          <%= if @post_id < (@count - 1) do %>
-            <.link href={~p"/posts?page=#{@post_id + 1}"}>
+          <%= if @offset < (@count - 1) do %>
+            <.link href={~p"/posts?page=#{@offset + 1}"}>
               <.icon name="hero-arrow-right-solid" class="h-6 w-6 right-0" />
             </.link>
           <% end %>
@@ -134,11 +119,9 @@ defmodule ExfwghtblogWeb.PostHTML do
     end
   end
 
-  def single_post(%{post_id: post_id} = assigns) do
-    result = Exfwghtblog.Repo.one(from p in Exfwghtblog.Post, where: p.id == ^post_id, select: p)
-
-    case result do
-      %Exfwghtblog.Post{deleted: true} ->
+  def single_post(%{batch_result: batch_result} = assigns) do
+    case batch_result.status do
+      :deleted ->
         ~H"""
         <div class="bg-slate-100 p-6 shadow-md">
           <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
@@ -147,18 +130,15 @@ defmodule ExfwghtblogWeb.PostHTML do
         </div>
         """
 
-      %Exfwghtblog.Post{
-        summary: summary,
-        body: body,
-        title: title,
-        inserted_at: inserted_at,
-        updated_at: updated_at,
-        poster_id: poster_id
-      } ->
-        name =
-          Exfwghtblog.Repo.one(
-            from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
-          )
+      :ok ->
+        %Exfwghtblog.Post{
+          summary: summary,
+          body: body,
+          title: title,
+          inserted_at: inserted_at,
+          updated_at: updated_at,
+          poster_id: _poster_id
+        } = batch_result.data
 
         {:ok, markdown_ast, _errors} = body |> EarmarkParser.as_ast()
 
@@ -170,7 +150,7 @@ defmodule ExfwghtblogWeb.PostHTML do
           |> assign(:title, title)
           |> assign(:inserted, inserted_at)
           |> assign(:updated, updated_at)
-          |> assign(:name, name)
+          |> assign(:name, batch_result.poster)
 
         ~H"""
         <div class="bg-slate-100 p-6 shadow-md">

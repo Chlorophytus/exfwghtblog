@@ -7,7 +7,7 @@ defmodule ExfwghtblogWeb.LoginController do
   use ExfwghtblogWeb, :controller
 
   @doc """
-  Render a single blog post on one page
+  Renders the login page
   """
   def login(conn, _params) do
     render(conn, :login)

@@ -2,7 +2,6 @@ defmodule ExfwghtblogWeb.AuthController do
   @moduledoc """
   Controller for logging in users
   """
-  import Ecto.Query
   import ExfwghtblogWeb.Gettext
   use ExfwghtblogWeb, :controller
 
@@ -12,32 +11,45 @@ defmodule ExfwghtblogWeb.AuthController do
   @doc """
   Logs in a user using the Guardian module
   """
-  def login(conn, %{"username" => name, "password" => pass}) do
-    user =
-      Exfwghtblog.Repo.one(from u in Exfwghtblog.User, where: ilike(u.username, ^name), select: u)
+  def login(conn, %{"username" => username, "password" => password}) do
+    batch_id = Exfwghtblog.BatchProcessor.check_password(username, password)
 
-    if Argon2.verify_pass(pass, user.pass_hash) do
-      conn =
+    receive do
+      {:batch_done, id, batch_result} when id == batch_id ->
+        case batch_result do
+          %{status: :ok, user: user} ->
+            conn =
+              conn
+              |> Exfwghtblog.Guardian.Plug.sign_in(user, %{typ: "access"},
+                ttl: {@time_to_live, :minute}
+              )
+
+            conn
+            |> fetch_session()
+            |> put_resp_content_type("application/json")
+            |> send_resp(
+              200,
+              Jason.encode!(%{
+                ok: true,
+                ttl: @time_to_live,
+                token: Exfwghtblog.Guardian.Plug.current_token(conn)
+              })
+            )
+
+          %{status: :invalid_password, user: _user} ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> send_resp(401, Jason.encode!(%{ok: false, info: gettext("Authentication failed")}))
+
+          %{status: :does_not_exist, user: _user} ->
+            conn
+            |> put_resp_content_type("application/json")
+            |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("User does not exist")}))
+        end
+    after 3000 ->
         conn
-        |> Exfwghtblog.Guardian.Plug.sign_in(user, %{typ: "access"}, ttl: {@time_to_live, :minute})
-
-      conn
-      |> fetch_session()
-      |> put_resp_content_type("application/json")
-      |> send_resp(
-        200,
-        Jason.encode!(%{
-          ok: true,
-          ttl: @time_to_live,
-          token: Exfwghtblog.Guardian.Plug.current_token(conn)
-        })
-      )
-    else
-      Argon2.no_user_verify()
-
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(401, Jason.encode!(%{ok: false, info: gettext("Authentication failed")}))
+        |> put_resp_content_type("application/json")
+        |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("Internal server error")}))
     end
   end
 
@@ -50,7 +62,7 @@ defmodule ExfwghtblogWeb.AuthController do
         |> fetch_session()
         |> Exfwghtblog.Guardian.Plug.sign_out()
         |> fetch_flash()
-        |> put_flash(:error, gettext("You were signed out due to inactivity"))
+        |> put_flash(:error, gettext("You were logged out due to inactivity"))
         |> redirect(to: "/")
 
       _other ->

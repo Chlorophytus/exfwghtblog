@@ -68,6 +68,7 @@ if(form !== null) {
                 password: document.getElementById("login-password").value
             })
         });
+        showLoginError(form, "Logging in...");
         const response = await fetch(request);
         if(response.ok) {
             showLoginError(form, "Login success");

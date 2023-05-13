@@ -34,8 +34,8 @@ defmodule ExfwghtblogWeb.Router do
 
     get "/", PageController, :home
 
-    get "/posts/", PostController, :multi
-    get "/posts/:idx", PostController, :single
+    get "/posts/", PostControllerMulti, :show
+    get "/posts/:idx", PostControllerSingle, :show
 
     get "/feed", RssController, :fetch
 
