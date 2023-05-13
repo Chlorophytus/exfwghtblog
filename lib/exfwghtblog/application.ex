@@ -33,7 +33,7 @@ defmodule Exfwghtblog.Application do
       # {Exfwghtblog.Worker, arg}
 
       Exfwghtblog.RssBuilder,
-      {Exfwghtblog.BatchProcessor, %{batch_interval: 250}}
+      {Exfwghtblog.BatchProcessor, %{batch_interval: 500}}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

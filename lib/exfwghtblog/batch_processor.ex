@@ -23,11 +23,6 @@ defmodule Exfwghtblog.BatchProcessor do
   end
 
   @impl true
-  def handle_call(:check_congestion, _from, state) do
-    {:reply, :queue.len(state.event_queue), state}
-  end
-
-  @impl true
   def handle_call({:batch_enqueue, instruction}, from, state) do
     event_id = :erlang.unique_integer()
     Logger.info("pushed event to batch processor server")
@@ -38,9 +33,9 @@ defmodule Exfwghtblog.BatchProcessor do
 
   @impl true
   def handle_info(:process_timer, state) do
-    if not :queue.is_empty(state.event_queue) do
-      Logger.debug("batch processor server has #{:queue.len(state.event_queue)} events right now")
+    :telemetry.execute([:exfwghtblog, :batch_processor], %{congestion: :queue.len(state.event_queue)}, %{})
 
+    if not :queue.is_empty(state.event_queue) do
       :queue.to_list(state.event_queue)
       |> Enum.map(&process_instruction/1)
       |> Enum.map(&send_response/1)
@@ -61,13 +56,6 @@ defmodule Exfwghtblog.BatchProcessor do
   """
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
-  end
-
-  @doc """
-  Checks the congestion of the batch queue
-  """
-  def get_congestion() do
-    GenServer.call(__MODULE__, :check_congestion)
   end
 
   @doc """
