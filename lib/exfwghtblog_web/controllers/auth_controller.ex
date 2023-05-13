@@ -46,7 +46,8 @@ defmodule ExfwghtblogWeb.AuthController do
             |> put_resp_content_type("application/json")
             |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("User does not exist")}))
         end
-    after 3000 ->
+    after
+      3000 ->
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("Internal server error")}))

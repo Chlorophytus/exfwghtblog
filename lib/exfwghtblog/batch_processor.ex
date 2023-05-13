@@ -33,12 +33,19 @@ defmodule Exfwghtblog.BatchProcessor do
 
   @impl true
   def handle_info(:process_timer, state) do
-    :telemetry.execute([:exfwghtblog, :batch_processor], %{congestion: :queue.len(state.event_queue)}, %{})
+    :telemetry.execute(
+      [:exfwghtblog, :batch_processor],
+      %{congestion: :queue.len(state.event_queue)},
+      %{}
+    )
 
     if not :queue.is_empty(state.event_queue) do
-      :queue.to_list(state.event_queue)
+      results = :queue.to_list(state.event_queue)
       |> Enum.map(&process_instruction/1)
-      |> Enum.map(&send_response/1)
+
+      for %{task: task, from: {from, _from_alias}, event_id: id} <- results do
+        send(from, {:batch_done, id, Task.await(task)})
+      end
     end
 
     {:noreply, new_state(state.args)}
@@ -46,8 +53,9 @@ defmodule Exfwghtblog.BatchProcessor do
 
   @impl true
   def code_change(_old_vsn, state, _extra) do
-    {:ok, state}
+    {:ok, %{state | batch_timer: Process.send_after(self(), :process_timer, state.args.batch_interval)}}
   end
+
   # ===========================================================================
   # Public functions
   # ===========================================================================
@@ -142,6 +150,7 @@ defmodule Exfwghtblog.BatchProcessor do
           count = div(all_count, @multi_post_fetch_limit)
 
           offset = all_count - page * @multi_post_fetch_limit
+
           %{
             page_count: count,
             page_offset: div(offset, @multi_post_fetch_limit),
@@ -195,9 +204,5 @@ defmodule Exfwghtblog.BatchProcessor do
           event_id: event_id
         }
     end
-  end
-
-  defp send_response(%{task: task, from: {from, _from_alias}, event_id: id}) do
-    send(from, {:batch_done, id, Task.await(task)})
   end
 end

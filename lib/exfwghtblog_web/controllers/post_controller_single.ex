@@ -34,6 +34,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
         conn
         |> Plug.Conn.assign(:batch_id, batch_id)
+
       _ ->
         conn
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)

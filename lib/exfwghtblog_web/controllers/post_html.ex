@@ -17,7 +17,9 @@ defmodule ExfwghtblogWeb.PostHTML do
 
   def multi_post(%{batch_result: batch_result} = assigns) do
     assigns =
-      assigns |> assign(count: batch_result.page_count) |> assign(offset: batch_result.page_offset)
+      assigns
+      |> assign(count: batch_result.page_count)
+      |> assign(offset: batch_result.page_offset)
 
     results_heex =
       for result <- batch_result.fetched do

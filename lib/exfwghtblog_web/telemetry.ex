@@ -82,8 +82,7 @@ defmodule ExfwghtblogWeb.Telemetry do
 
       # Exfwghtblog Metrics
       summary("exfwghtblog.batch_processor.congestion",
-        description:
-          "The congestion of the batched event processor"
+        description: "The congestion of the batched event processor"
       )
     ]
   end
