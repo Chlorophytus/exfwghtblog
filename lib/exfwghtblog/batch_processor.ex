@@ -40,8 +40,9 @@ defmodule Exfwghtblog.BatchProcessor do
     )
 
     if not :queue.is_empty(state.event_queue) do
-      results = :queue.to_list(state.event_queue)
-      |> Enum.map(&process_instruction/1)
+      results =
+        :queue.to_list(state.event_queue)
+        |> Enum.map(&process_instruction/1)
 
       for %{task: task, from: {from, _from_alias}, event_id: id} <- results do
         send(from, {:batch_done, id, Task.await(task)})
@@ -53,7 +54,8 @@ defmodule Exfwghtblog.BatchProcessor do
 
   @impl true
   def code_change(_old_vsn, state, _extra) do
-    {:ok, %{state | batch_timer: Process.send_after(self(), :process_timer, state.args.batch_interval)}}
+    {:ok,
+     %{state | batch_timer: Process.send_after(self(), :process_timer, state.args.batch_interval)}}
   end
 
   # ===========================================================================
@@ -93,6 +95,15 @@ defmodule Exfwghtblog.BatchProcessor do
     GenServer.call(__MODULE__, {:batch_enqueue, {:check_password, username, password}})
   end
 
+  @doc """
+  Enqueues a blog post publishing
+
+  Returns an ID representing the enqueued operation
+  """
+  def publish_entry(blog_entry) do
+    GenServer.call(__MODULE__, {:batch_enqueue, {:publish_entry, blog_entry}})
+  end
+
   # ===========================================================================
   # Private functions
   # ===========================================================================
@@ -105,8 +116,6 @@ defmodule Exfwghtblog.BatchProcessor do
   end
 
   defp process_instruction({event_id, from, {:load_single_post, idx}}) do
-    Logger.debug("load single post id #{idx}")
-
     result = Exfwghtblog.Repo.one(from p in Exfwghtblog.Post, where: p.id == ^idx, select: p)
 
     case result do
@@ -140,8 +149,6 @@ defmodule Exfwghtblog.BatchProcessor do
   end
 
   defp process_instruction({event_id, from, {:load_multi_post, page}}) do
-    Logger.debug("load multi post page #{page}")
-
     %{
       task:
         Task.async(fn ->
@@ -169,8 +176,6 @@ defmodule Exfwghtblog.BatchProcessor do
   end
 
   defp process_instruction({event_id, from, {:check_password, username, password}}) do
-    Logger.debug("check password of account '#{username}'")
-
     result =
       Exfwghtblog.Repo.one(
         from u in Exfwghtblog.User, where: ilike(u.username, ^username), select: u
@@ -204,5 +209,16 @@ defmodule Exfwghtblog.BatchProcessor do
           event_id: event_id
         }
     end
+  end
+
+  defp process_instruction({event_id, from, {:publish_entry, blog_entry}}) do
+    %{
+      task:
+        Task.async(fn ->
+          Exfwghtblog.Repo.insert(blog_entry)
+        end),
+      from: from,
+      event_id: event_id
+    }
   end
 end
