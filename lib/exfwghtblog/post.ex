@@ -7,7 +7,7 @@ defmodule Exfwghtblog.Post do
     field :deleted, :boolean, default: false
     field :summary, :string
     field :title, :string
-    field :poster_id, :id
+    belongs_to :poster, Exfwghtblog.User
 
     timestamps()
   end
@@ -15,7 +15,7 @@ defmodule Exfwghtblog.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :body, :deleted, :summary])
-    |> validate_required([:title, :body, :deleted, :summary])
+    |> cast(attrs, [:body, :deleted, :summary, :title])
+    |> validate_required([:body, :deleted, :summary, :title])
   end
 end

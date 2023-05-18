@@ -1,6 +1,6 @@
-defmodule ExfwghtblogWeb.PostControllerSingle do
+defmodule ExfwghtblogWeb.PostControllerEditor do
   @moduledoc """
-  Controller for rendering actual single blog posts
+  Controller for rendering the blog post editor
   """
   use ExfwghtblogWeb, :controller
 
@@ -29,7 +29,9 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
           _ ->
             conn
-            |> render_result(batch_result, nil)
+            |> put_view(html: ExfwghtblogWeb.ErrorHTML)
+            |> render("401.html")
+            |> put_flash(:error, "You are not logged in")
         end
     after
       2000 ->
@@ -66,7 +68,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
   defp render_result(conn, %{status: :ok} = batch_result, user_id) do
     conn
     |> put_view(html: ExfwghtblogWeb.PostHTML)
-    |> render(:single,
+    |> render(:editor,
       batch_result: batch_result,
       user_id: user_id
     )
@@ -76,13 +78,11 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
     conn
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> render("410.html")
-    |> put_flash(:error, "This post has been deleted")
   end
 
   defp render_result(conn, %{status: :not_found}, _user_id) do
     conn
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> render("404.html")
-    |> put_flash(:error, "The post could not be found")
   end
 end

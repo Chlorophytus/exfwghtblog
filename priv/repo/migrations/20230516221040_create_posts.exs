@@ -3,10 +3,10 @@ defmodule Exfwghtblog.Repo.Migrations.CreatePosts do
 
   def change do
     create table(:posts) do
-      add :title, :string
       add :body, :text
       add :deleted, :boolean, default: false, null: false
       add :summary, :string
+      add :title, :string
       add :poster_id, references(:users, on_delete: :nothing)
 
       timestamps()

@@ -6,7 +6,10 @@ defmodule ExfwghtblogWeb.AuthController do
   use ExfwghtblogWeb, :controller
 
   # How many minutes should we keep the user logged in?
-  @time_to_live 10
+  def get_ttl_minutes(), do: 10
+
+  defp map_error(:does_not_exist), do: 500
+  defp map_error(:invalid_password), do: 401
 
   @doc """
   Logs in a user using the Guardian module
@@ -16,41 +19,32 @@ defmodule ExfwghtblogWeb.AuthController do
 
     receive do
       {:batch_done, id, batch_result} when id == batch_id ->
-        case batch_result do
-          %{status: :ok, user: user} ->
+        case batch_result.status do
+          :ok ->
             conn =
               conn
-              |> Exfwghtblog.Guardian.Plug.sign_in(user, %{typ: "access"},
-                ttl: {@time_to_live, :minute}
+              |> Exfwghtblog.Guardian.Plug.sign_in(batch_result.user, %{typ: "access"},
+                ttl: {get_ttl_minutes(), :minute}
               )
 
             conn
-            |> fetch_session()
-            |> put_resp_content_type("application/json")
-            |> send_resp(
-              200,
-              Jason.encode!(%{
-                ok: true,
-                ttl: @time_to_live,
-                token: Exfwghtblog.Guardian.Plug.current_token(conn)
-              })
-            )
+            |> put_view(json: ExfwghtblogWeb.AuthJSON)
+            |> render(:login_success, token: Exfwghtblog.Guardian.Plug.current_token(conn))
 
-          %{status: :invalid_password, user: _user} ->
-            conn
-            |> put_resp_content_type("application/json")
-            |> send_resp(401, Jason.encode!(%{ok: false, info: gettext("Authentication failed")}))
+          error ->
+            code = map_error(error)
 
-          %{status: :does_not_exist, user: _user} ->
             conn
-            |> put_resp_content_type("application/json")
-            |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("User does not exist")}))
+            |> put_view(json: ExfwghtblogWeb.ErrorJSON)
+            |> put_status(code)
+            |> render("#{code}.json", reason: error)
         end
     after
       3000 ->
         conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(500, Jason.encode!(%{ok: false, info: gettext("Internal server error")}))
+        |> put_view(json: ExfwghtblogWeb.ErrorJSON)
+        |> put_status(500)
+        |> render("500.json")
     end
   end
 

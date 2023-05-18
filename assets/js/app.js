@@ -54,9 +54,9 @@ function showLoginError(form, message) {
     loginError.innerText = message;
 }
 
-let form = document.getElementById("login-form");
-if(form !== null) {
-    form.addEventListener("submit", async (ev) => {
+let loginForm = document.getElementById("login-form");
+if(loginForm !== null) {
+    loginForm.addEventListener("submit", async (ev) => {
         ev.preventDefault();
         const request = new Request("/api/login", {
             method: "POST",
@@ -68,21 +68,23 @@ if(form !== null) {
                 password: document.getElementById("login-password").value
             })
         });
-        showLoginError(form, "Logging in...");
+        showLoginError(loginForm, "Logging in...");
         const response = await fetch(request);
-        if(response.ok) {
-            showLoginError(form, "Login success");
+        const json = await response.json();
+        if(json.ok) {
+            showLoginError(loginForm, "Login success");
             await new Promise((resolve) => {
                 setTimeout(() => { resolve() }, 1000);
             }).then(() => {
                 window.location.replace("/posts");
             });
         } else {
-            response.json().then((json) => {
-                showLoginError(form, json.info);
-            }).catch((error) => {
-                showLoginError(form, "Client error");
-            });
+            showLoginError(loginForm, json.detail);
         }
     })
+}
+
+let editForm = document.getElementById("edit-form");
+if(editForm !== null) {
+    editForm.addEventListener("")
 }

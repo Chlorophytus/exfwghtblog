@@ -6,12 +6,13 @@ defmodule Exfwghtblog.BatchProcessor do
   - Loading multiple posts
   - Loading single posts
   - Checking passwords
+  - Publishing posts
+  - Editing posts
+  - Deleting posts
   """
-  require Logger
   import Ecto.Query
   use GenServer
 
-  @send_auth_results_after 500
   @multi_post_fetch_limit 5
 
   # ===========================================================================
@@ -25,7 +26,6 @@ defmodule Exfwghtblog.BatchProcessor do
   @impl true
   def handle_call({:batch_enqueue, instruction}, from, state) do
     event_id = :erlang.unique_integer()
-    Logger.info("pushed event to batch processor server")
 
     {:reply, event_id,
      %{state | event_queue: :queue.snoc(state.event_queue, {event_id, from, instruction})}}
@@ -73,8 +73,8 @@ defmodule Exfwghtblog.BatchProcessor do
 
   Returns an ID representing the enqueued operation
   """
-  def post_read_multi(page) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:load_multi_post, page}})
+  def load_page(page) do
+    GenServer.call(__MODULE__, {:batch_enqueue, {:load_page, page}})
   end
 
   @doc """
@@ -82,8 +82,8 @@ defmodule Exfwghtblog.BatchProcessor do
 
   Returns an ID representing the enqueued operation
   """
-  def post_read_single(idx) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:load_single_post, idx}})
+  def load_post(idx) do
+    GenServer.call(__MODULE__, {:batch_enqueue, {:load_post, idx}})
   end
 
   @doc """
@@ -104,6 +104,27 @@ defmodule Exfwghtblog.BatchProcessor do
     GenServer.call(__MODULE__, {:batch_enqueue, {:publish_entry, blog_entry}})
   end
 
+  @doc """
+  Enqueues a blog post editing
+
+  Returns an ID representing the enqueued operation
+  """
+  def try_revise_entry(requester_id, post_id, new_body) do
+    GenServer.call(
+      __MODULE__,
+      {:batch_enqueue, {:try_revise_entry, requester_id, post_id, new_body}}
+    )
+  end
+
+  @doc """
+  Enqueues a blog post deletion
+
+  Returns an ID representing the enqueued operation
+  """
+  def try_delete_entry(requester_id, post_id) do
+    GenServer.call(__MODULE__, {:batch_enqueue, {:try_delete_entry, requester_id, post_id}})
+  end
+
   # ===========================================================================
   # Private functions
   # ===========================================================================
@@ -115,40 +136,7 @@ defmodule Exfwghtblog.BatchProcessor do
     }
   end
 
-  defp process_instruction({event_id, from, {:load_single_post, idx}}) do
-    result = Exfwghtblog.Repo.one(from p in Exfwghtblog.Post, where: p.id == ^idx, select: p)
-
-    case result do
-      nil ->
-        %{
-          task: Task.async(fn -> %{post_id: idx, status: :not_found, data: nil, poster: nil} end),
-          from: from,
-          event_id: event_id
-        }
-
-      %Exfwghtblog.Post{deleted: true} ->
-        %{
-          task: Task.async(fn -> %{post_id: idx, status: :deleted, data: nil, poster: nil} end),
-          from: from,
-          event_id: event_id
-        }
-
-      post ->
-        poster_name =
-          Exfwghtblog.Repo.one(
-            from u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u.username
-          )
-
-        %{
-          task:
-            Task.async(fn -> %{post_id: idx, status: :ok, data: post, poster: poster_name} end),
-          from: from,
-          event_id: event_id
-        }
-    end
-  end
-
-  defp process_instruction({event_id, from, {:load_multi_post, page}}) do
+  defp process_instruction({event_id, from, {:load_page, page}}) do
     %{
       task:
         Task.async(fn ->
@@ -166,7 +154,8 @@ defmodule Exfwghtblog.BatchProcessor do
                 from p in Exfwghtblog.Post,
                   order_by: [desc: p.id],
                   where: p.id <= ^offset,
-                  limit: @multi_post_fetch_limit
+                  limit: @multi_post_fetch_limit,
+                  preload: [:poster]
               )
           }
         end),
@@ -176,38 +165,35 @@ defmodule Exfwghtblog.BatchProcessor do
   end
 
   defp process_instruction({event_id, from, {:check_password, username, password}}) do
-    result =
+    user =
       Exfwghtblog.Repo.one(
         from u in Exfwghtblog.User, where: ilike(u.username, ^username), select: u
       )
 
-    case result do
-      nil ->
-        %{
-          task:
-            Task.async(fn ->
-              Process.sleep(@send_auth_results_after)
-              %{username: username, status: :does_not_exist}
-            end),
-          from: from,
-          event_id: event_id
-        }
+    if is_nil(user) do
+      %{
+        task:
+          Task.async(fn ->
+            Argon2.no_user_verify()
 
-      user ->
-        %{
-          task:
-            Task.async(fn ->
-              Process.sleep(@send_auth_results_after)
-
-              if Argon2.verify_pass(password, user.pass_hash) do
-                %{user: user, status: :ok}
-              else
-                %{user: user, status: :invalid_password}
-              end
-            end),
-          from: from,
-          event_id: event_id
-        }
+            %{user: nil, status: :does_not_exist}
+          end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            if Argon2.verify_pass(password, user.pass_hash) do
+              %{user: user, status: :ok}
+            else
+              %{user: user, status: :invalid_password}
+            end
+          end),
+        from: from,
+        event_id: event_id
+      }
     end
   end
 
@@ -216,6 +202,85 @@ defmodule Exfwghtblog.BatchProcessor do
       task:
         Task.async(fn ->
           Exfwghtblog.Repo.insert(blog_entry)
+        end),
+      from: from,
+      event_id: event_id
+    }
+  end
+
+  defp process_instruction({event_id, from, {:try_revise_entry, requester_id, post_id, new_body}}) do
+    %{
+      task:
+        Task.async(fn ->
+          results =
+            Ecto.Multi.new()
+            |> Ecto.Multi.one(
+              :post,
+              from(p in Exfwghtblog.Post,
+                where: p.id == ^post_id,
+                select: p.poster,
+                preload: [:poster]
+              )
+            )
+            |> Ecto.Multi.one(:user, fn %{post: {_post, poster}} ->
+              from(u in Exfwghtblog.User, where: ^poster.id == ^requester_id, select: u)
+            end)
+            |> Ecto.Multi.update(:edit, fn %{post: {post, _poster}, user: user}
+                                           when not is_nil(user) ->
+              Ecto.Changeset.change(post, body: new_body)
+            end)
+            |> Exfwghtblog.Repo.transaction()
+
+          case results do
+            {:ok, _result} -> %{status: :ok}
+            _ -> %{status: :error}
+          end
+        end),
+      from: from,
+      event_id: event_id
+    }
+  end
+
+  defp process_instruction({event_id, from, {:try_delete_entry, requester_id, post_id}}) do
+    %{
+      task:
+        Task.async(fn ->
+          results =
+            Ecto.Multi.new()
+            |> Ecto.Multi.one(
+              :post,
+              from(p in Exfwghtblog.Post,
+                where: p.id == ^post_id,
+                select: {p, p.poster},
+                preload: [:poster]
+              )
+            )
+            |> Ecto.Multi.one(:user, fn %{post: {_post, poster}} ->
+              from(u in Exfwghtblog.User, where: ^poster.id == ^requester_id, select: u)
+            end)
+            |> Ecto.Multi.update(:delete, fn %{post: {post, _poster}, user: user}
+                                             when not is_nil(user) ->
+              Ecto.Changeset.change(post, deleted: true)
+            end)
+            |> Exfwghtblog.Repo.transaction()
+
+          case results do
+            {:ok, _result} -> %{status: :ok}
+            _ -> %{status: :error}
+          end
+        end),
+      from: from,
+      event_id: event_id
+    }
+  end
+
+  defp process_instruction({event_id, from, {:load_post, post_id}}) do
+    %{
+      task:
+        Task.async(fn ->
+          Exfwghtblog.Repo.one(
+            from p in Exfwghtblog.Post, where: p.id == ^post_id, preload: [:poster]
+          )
         end),
       from: from,
       event_id: event_id

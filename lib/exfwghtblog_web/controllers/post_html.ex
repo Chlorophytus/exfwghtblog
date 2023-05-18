@@ -2,7 +2,6 @@ defmodule ExfwghtblogWeb.PostHTML do
   @moduledoc """
   HTML content for the `PostController`
   """
-  import Ecto.Query
   import ExfwghtblogWeb.Gettext
 
   use ExfwghtblogWeb, :html
@@ -11,10 +10,12 @@ defmodule ExfwghtblogWeb.PostHTML do
   embed_templates "post_html/*"
 
   attr :batch_result, :any
-  attr :signed_in, :boolean
+  attr :user_id, :integer
 
   @truncation_limit 80
-
+  # ===========================================================================
+  # Show multiple posts
+  # ===========================================================================
   def multi_post(%{batch_result: batch_result} = assigns) do
     assigns =
       assigns
@@ -37,13 +38,8 @@ defmodule ExfwghtblogWeb.PostHTML do
             summary: summary,
             inserted_at: inserted_at,
             updated_at: updated_at,
-            poster_id: poster_id
+            poster: poster
           } ->
-            name =
-              Exfwghtblog.Repo.one(
-                from u in Exfwghtblog.User, where: u.id == ^poster_id, select: u.username
-              )
-
             truncated =
               if String.length(summary) < @truncation_limit do
                 summary
@@ -58,18 +54,12 @@ defmodule ExfwghtblogWeb.PostHTML do
               |> assign(:summary, truncated)
               |> assign(:inserted, inserted_at)
               |> assign(:updated, updated_at)
-              |> assign(:name, name)
+              |> assign(:name, poster.username)
 
             ~H"""
             <div class="bg-slate-100 p-6 shadow-md">
               <h2 class="font-bold text-xl">
                 <.link class="text-blue-800" href={~p"/posts/#{@post_id}"}><%= @title %></.link>
-                <%= if @signed_in do %>
-                  <span class="float-right">
-                    <.icon name="hero-pencil-solid" />
-                    <.icon name="hero-trash-solid" />
-                  </span>
-                <% end %>
               </h2>
               <p><%= @summary %></p>
               <p class="text-sm italic">
@@ -121,68 +111,73 @@ defmodule ExfwghtblogWeb.PostHTML do
     end
   end
 
-  def single_post(%{batch_result: batch_result} = assigns) do
-    case batch_result.status do
-      :deleted ->
-        ~H"""
-        <div class="bg-slate-100 p-6 shadow-md">
-          <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
-          <br />
-          <p class="text-sm italic"><%= gettext("This post has been deleted") %></p>
-        </div>
-        """
+  # ===========================================================================
+  # Show single posts
+  # ===========================================================================
+  def single_post(%{batch_result: batch_result, user_id: user_id} = assigns) do
+    %Exfwghtblog.Post{
+      id: id,
+      summary: summary,
+      body: body,
+      title: title,
+      inserted_at: inserted_at,
+      updated_at: updated_at,
+      poster: poster
+    } = batch_result.data
 
-      :ok ->
-        %Exfwghtblog.Post{
-          summary: summary,
-          body: body,
-          title: title,
-          inserted_at: inserted_at,
-          updated_at: updated_at,
-          poster_id: _poster_id
-        } = batch_result.data
+    # Need to make line breaks \r\n style to HTML...
+    {:ok, markdown_ast, _errors} = body |> EarmarkParser.as_ast()
 
-        {:ok, markdown_ast, _errors} = body |> EarmarkParser.as_ast()
+    assigns =
+      assigns
+      |> assign(:id, id)
+      |> assign(:summary, summary)
+      |> assign(:body, markdown_ast |> Exfwghtblog.Markdown.traverse())
+      |> assign(:title, title)
+      |> assign(:inserted, inserted_at)
+      |> assign(:updated, updated_at)
+      |> assign(:name, poster.username)
+      |> assign(:can_edit, user_id == poster.id)
 
-        # Need to make line breaks \r\n style to HTML...
-        assigns =
-          assigns
-          |> assign(:summary, summary)
-          |> assign(:body, markdown_ast |> Exfwghtblog.Markdown.traverse())
-          |> assign(:title, title)
-          |> assign(:inserted, inserted_at)
-          |> assign(:updated, updated_at)
-          |> assign(:name, batch_result.poster)
-
-        ~H"""
-        <div class="bg-slate-100 p-6 shadow-md">
-          <span class="float-right">
+    ~H"""
+    <div class="bg-slate-100 p-6 shadow-md">
+      <%= if @can_edit do %>
+        <span class="float-right">
+          <.link href={~p"/posts/#{@id}/edit"}>
             <.icon name="hero-pencil-solid" />
+          </.link>
+          <.link href={~p"/posts/#{@id}/delete"}>
             <.icon name="hero-trash-solid" />
-          </span>
-          <h2 class="font-bold text-xl"><%= @title %></h2>
-          <p><%= @summary %></p>
-          <br />
-          <p><%= raw(@body) %></p>
-          <br />
-          <p class="text-sm italic">
-            <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
-              username: @name,
-              post_date: @inserted |> NaiveDateTime.to_string(),
-              edit_date: @updated |> NaiveDateTime.to_string()
-            ) %>
-          </p>
-        </div>
-        """
+          </.link>
+        </span>
+      <% end %>
+      <h2 class="font-bold text-xl"><%= @title %></h2>
+      <p><%= @summary %></p>
+      <br />
+      <p><%= raw(@body) %></p>
+      <br />
+      <p class="text-sm italic">
+        <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
+          username: @name,
+          post_date: @inserted |> NaiveDateTime.to_string(),
+          edit_date: @updated |> NaiveDateTime.to_string()
+        ) %>
+      </p>
+    </div>
+    """
+  end
 
-      _other ->
-        ~H"""
-        <div class="bg-slate-100 p-6 shadow-md">
-          <h2 class="font-bold text-xl"><%= gettext("Not found") %></h2>
-          <br />
-          <p class="text-sm italic"><%= gettext("The post was not found") %></p>
-        </div>
-        """
-    end
+  # ===========================================================================
+  # Edit single posts
+  # ===========================================================================
+  def single_edit(assigns) do
+    ~H"Editing is unimplemented, sorry."
+  end
+
+  # ===========================================================================
+  # Delete single posts
+  # ===========================================================================
+  def single_delete(assigns) do
+    ~H"Deletion is unimplemented, sorry."
   end
 end

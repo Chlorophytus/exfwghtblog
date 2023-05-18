@@ -5,6 +5,7 @@ defmodule Exfwghtblog.User do
   schema "users" do
     field :pass_hash, :binary, redact: true
     field :username, :string
+    has_many :posts, Exfwghtblog.Post, foreign_key: :poster_id
 
     timestamps()
   end
