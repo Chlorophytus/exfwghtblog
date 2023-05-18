@@ -1,4 +1,4 @@
-defmodule ExfwghtblogWeb.PostControllerEditor do
+defmodule ExfwghtblogWeb.PostControllerDeleter do
   @moduledoc """
   Controller for rendering the blog post editor
   """
@@ -30,8 +30,8 @@ defmodule ExfwghtblogWeb.PostControllerEditor do
           _ ->
             conn
             |> put_view(html: ExfwghtblogWeb.ErrorHTML)
-            |> render("401.html")
             |> put_flash(:error, "You are not logged in")
+            |> render("401.html")
         end
     after
       2000 ->
@@ -82,7 +82,7 @@ defmodule ExfwghtblogWeb.PostControllerEditor do
   defp render_result(conn, batch_result, user_id) do
     conn
     |> put_view(html: ExfwghtblogWeb.PostHTML)
-    |> render(:editor,
+    |> render(:deleter,
       batch_result: batch_result,
       user_id: user_id
     )

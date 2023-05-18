@@ -114,17 +114,20 @@ defmodule ExfwghtblogWeb.PostHTML do
   # ===========================================================================
   # Show single posts
   # ===========================================================================
-  def single_post(%{batch_result: batch_result, user_id: user_id} = assigns) do
-    %Exfwghtblog.Post{
-      id: id,
-      summary: summary,
-      body: body,
-      title: title,
-      inserted_at: inserted_at,
-      updated_at: updated_at,
-      poster: poster
-    } = batch_result.data
-
+  def single_post(
+        %{
+          batch_result: %Exfwghtblog.Post{
+            id: id,
+            summary: summary,
+            body: body,
+            title: title,
+            inserted_at: inserted_at,
+            updated_at: updated_at,
+            poster: poster
+          },
+          user_id: user_id
+        } = assigns
+      ) do
     # Need to make line breaks \r\n style to HTML...
     {:ok, markdown_ast, _errors} = body |> EarmarkParser.as_ast()
 
@@ -170,14 +173,73 @@ defmodule ExfwghtblogWeb.PostHTML do
   # ===========================================================================
   # Edit single posts
   # ===========================================================================
-  def single_edit(assigns) do
-    ~H"Editing is unimplemented, sorry."
+  def single_edit(
+        %{
+          batch_result: %Exfwghtblog.Post{
+            id: id,
+            summary: summary,
+            body: body,
+            title: title
+          }
+        } = assigns
+      ) do
+    assigns =
+      assigns
+      |> assign(:id, id)
+      |> assign(:summary, summary)
+      |> assign(:body, body)
+      |> assign(:title, title)
+
+    ~H"""
+    <div class="bg-slate-100 p-6 shadow-md">
+      <form data-idx={@id} id="edit-form" action={~p"/api/secure/publish/#{@id}"} class="w-full m-auto">
+        <h2 class="font-bold text-xl"><%= @title %> <i>(editing)</i></h2>
+        <p><%= @summary %></p>
+        <br />
+        <textarea
+          id="edit-body"
+          rows="8"
+          cols="80"
+          name="body"
+          class="rounded-md p-3 m-1 w-full bg-gray-200 shadow-md"
+        ><%= @body %></textarea>
+        <br />
+        <input
+          type="submit"
+          value="Edit"
+          class="bg-yellow-100 hover:bg-yellow-200 rounded-full p-3 m-1 w-full shadow-md"
+        />
+      </form>
+    </div>
+    """
   end
 
   # ===========================================================================
   # Delete single posts
   # ===========================================================================
-  def single_delete(assigns) do
-    ~H"Deletion is unimplemented, sorry."
+  def single_delete(%{batch_result: %Exfwghtblog.Post{
+            id: id,
+            summary: summary,
+            title: title
+          }} = assigns) do
+    assigns =
+      assigns
+      |> assign(:id, id)
+      |> assign(:summary, summary)
+      |> assign(:title, title)
+    ~H"""
+    <div class="bg-slate-100 p-6 shadow-md">
+      <h2 class="font-bold text-xl"><%= @title %> <i>(deletion)</i></h2>
+      <p><%= @summary %></p>
+      <br />
+      <form data-idx={@id} id="delete-form" method="post" class="w-full m-auto">
+        <input
+          type="submit"
+          value="Delete"
+          class="bg-red-100 hover:bg-red-200 rounded-full p-3 m-1 w-full shadow-md"
+        />
+      </form>
+    </div>
+    """
   end
 end

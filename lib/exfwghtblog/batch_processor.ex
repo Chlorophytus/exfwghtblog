@@ -1,14 +1,6 @@
 defmodule Exfwghtblog.BatchProcessor do
   @moduledoc """
-  Batches operations into a queue
-
-  The list of operations that are batched is currently:
-  - Loading multiple posts
-  - Loading single posts
-  - Checking passwords
-  - Publishing posts
-  - Editing posts
-  - Deleting posts
+  Batches most database/etc. operations into a queue
   """
   import Ecto.Query
   use GenServer
@@ -218,20 +210,24 @@ defmodule Exfwghtblog.BatchProcessor do
               :post,
               from(p in Exfwghtblog.Post,
                 where: p.id == ^post_id,
-                select: p.poster,
+                select: p,
                 preload: [:poster]
               )
             )
-            |> Ecto.Multi.one(:user, fn %{post: {_post, poster}} ->
-              from(u in Exfwghtblog.User, where: ^poster.id == ^requester_id, select: u)
+            |> Ecto.Multi.one(:user, fn %{post: post} ->
+              from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
             end)
-            |> Ecto.Multi.update(:edit, fn %{post: {post, _poster}, user: user}
-                                           when not is_nil(user) ->
-              Ecto.Changeset.change(post, body: new_body)
+            |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
+              if user.id == requester_id do
+                Ecto.Changeset.change(post, body: new_body)
+              else
+                :not_your_entry
+              end
             end)
             |> Exfwghtblog.Repo.transaction()
 
           case results do
+            {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
             {:ok, _result} -> %{status: :ok}
             _ -> %{status: :error}
           end
@@ -251,20 +247,24 @@ defmodule Exfwghtblog.BatchProcessor do
               :post,
               from(p in Exfwghtblog.Post,
                 where: p.id == ^post_id,
-                select: {p, p.poster},
+                select: p,
                 preload: [:poster]
               )
             )
-            |> Ecto.Multi.one(:user, fn %{post: {_post, poster}} ->
-              from(u in Exfwghtblog.User, where: ^poster.id == ^requester_id, select: u)
+            |> Ecto.Multi.one(:user, fn %{post: post} ->
+              from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
             end)
-            |> Ecto.Multi.update(:delete, fn %{post: {post, _poster}, user: user}
-                                             when not is_nil(user) ->
-              Ecto.Changeset.change(post, deleted: true)
+            |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
+              if user.id == requester_id do
+                Ecto.Changeset.change(post, deleted: true)
+              else
+                :not_your_entry
+              end
             end)
             |> Exfwghtblog.Repo.transaction()
 
           case results do
+            {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
             {:ok, _result} -> %{status: :ok}
             _ -> %{status: :error}
           end

@@ -42,16 +42,16 @@ window.liveSocket = liveSocket
 window.Alpine = Alpine;
 Alpine.start();
 
-function showLoginError(form, message) {
-    function createLoginError() {
+function showError(form, message) {
+    function createError() {
         let error = document.createElement("div");
-        error.id = "login-result";
+        error.id = "result";
         error.className = "bg-red-100 rounded-full p-4 m-4 w-full shadow-md";
         form.appendChild(error);
         return error;
     }
-    let loginError = document.getElementById("login-result") ?? createLoginError();
-    loginError.innerText = message;
+    let statusError = document.getElementById("result") ?? createError();
+    statusError.innerText = message;
 }
 
 let loginForm = document.getElementById("login-form");
@@ -68,23 +68,66 @@ if(loginForm !== null) {
                 password: document.getElementById("login-password").value
             })
         });
-        showLoginError(loginForm, "Logging in...");
+        showError(loginForm, "Logging in...");
         const response = await fetch(request);
         const json = await response.json();
         if(json.ok) {
-            showLoginError(loginForm, "Login success");
+            showError(loginForm, "Login success");
             await new Promise((resolve) => {
                 setTimeout(() => { resolve() }, 1000);
             }).then(() => {
                 window.location.replace("/posts");
             });
         } else {
-            showLoginError(loginForm, json.detail);
+            showError(loginForm, json.detail);
         }
     })
 }
 
+let deleteForm = document.getElementById("delete-form");
+if(deleteForm !== null) {
+    deleteForm.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const idx = deleteForm.dataset.idx;
+        const request = new Request(`/api/secure/publish/${idx}`,
+        {
+            method: "DELETE"
+        });
+        const response = await fetch(request);
+        const json = await response.json();
+        if(json.ok) {
+            await new Promise((resolve) => {
+                setTimeout(() => { resolve() }, 1000);
+            }).then(() => {
+                window.location.replace("/posts/");
+            });
+        } else {
+            showError(editForm, json.detail);
+        }
+    });
+}
+
 let editForm = document.getElementById("edit-form");
 if(editForm !== null) {
-    editForm.addEventListener("")
+    editForm.addEventListener("submit", async (ev) => {
+        const idx = editForm.dataset.idx;
+        ev.preventDefault();
+        const request = new Request(`/api/secure/publish/${idx}`,
+        {
+            method: "POST",
+            body: document.getElementById("edit-body").value
+
+        });
+        const response = await fetch(request);
+        const json = await response.json();
+        if(json.ok) {
+            await new Promise((resolve) => {
+                setTimeout(() => { resolve() }, 1000);
+            }).then(() => {
+                window.location.replace(`/posts/${idx}`);
+            });
+        } else {
+            showError(editForm, json.detail);
+        }
+    });
 }

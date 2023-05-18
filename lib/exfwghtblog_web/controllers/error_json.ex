@@ -19,8 +19,12 @@ defmodule ExfwghtblogWeb.ErrorJSON do
   # ===========================================================================
   # ERROR 401
   # ===========================================================================
-  def render("401.json", %{reason: :invalid_password}) do
+  def render("401.json", %{point: :user, reason: :invalid_password}) do
     %{ok: false, detail: "Authentication failed"}
+  end
+
+  def render("401.json", %{point: :edit, reason: :not_your_entry}) do
+    %{ok: false, detail: "This is not your post"}
   end
 
   def render("401.json", _assigns) do
@@ -30,7 +34,7 @@ defmodule ExfwghtblogWeb.ErrorJSON do
   # ===========================================================================
   # ERROR 500
   # ===========================================================================
-  def render("500.json", %{reason: :does_not_exist}) do
+  def render("500.json", %{point: :user, reason: :does_not_exist}) do
     %{ok: false, detail: "User does not exist"}
   end
 

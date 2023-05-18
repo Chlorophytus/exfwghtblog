@@ -63,26 +63,26 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
   # ===========================================================================
   # Actual rendering of single posts or error pages
   # ===========================================================================
-  defp render_result(conn, %{status: :ok} = batch_result, user_id) do
+  defp render_result(conn, nil, _user_id) do
+    conn
+    |> put_view(html: ExfwghtblogWeb.ErrorHTML)
+    |> put_flash(:error, "The post could not be found")
+    |> render("404.html")
+  end
+
+  defp render_result(conn, %Exfwghtblog.Post{deleted: true}, _user_id) do
+    conn
+    |> put_view(html: ExfwghtblogWeb.ErrorHTML)
+    |> put_flash(:error, "This post has been deleted")
+    |> render("410.html")
+  end
+
+  defp render_result(conn, batch_result, user_id) do
     conn
     |> put_view(html: ExfwghtblogWeb.PostHTML)
     |> render(:single,
       batch_result: batch_result,
       user_id: user_id
     )
-  end
-
-  defp render_result(conn, %{status: :deleted}, _user_id) do
-    conn
-    |> put_view(html: ExfwghtblogWeb.ErrorHTML)
-    |> render("410.html")
-    |> put_flash(:error, "This post has been deleted")
-  end
-
-  defp render_result(conn, %{status: :not_found}, _user_id) do
-    conn
-    |> put_view(html: ExfwghtblogWeb.ErrorHTML)
-    |> render("404.html")
-    |> put_flash(:error, "The post could not be found")
   end
 end

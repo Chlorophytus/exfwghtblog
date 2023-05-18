@@ -37,7 +37,7 @@ defmodule ExfwghtblogWeb.Router do
     get "/posts/", PostControllerMulti, :show
     get "/posts/:idx", PostControllerSingle, :show
     get "/posts/:idx/edit", PostControllerEditor, :show
-    get "/posts/:idx/delete", PostControllerDeleter, :delete
+    get "/posts/:idx/delete", PostControllerDeleter, :show
 
     get "/feed", RssController, :fetch
 
@@ -57,8 +57,8 @@ defmodule ExfwghtblogWeb.Router do
     pipe_through [:api, :determine_authentication, :ensure_authenticated]
 
     post "/publish", PublishController, :post
-    patch "/publish", PublishController, :edit
-    delete "/publish", PublishController, :remove
+    post "/publish/:idx", PublishController, :edit
+    delete "/publish/:idx", PublishController, :remove
   end
 
   # Other scopes may use custom stacks.
