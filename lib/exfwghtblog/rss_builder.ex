@@ -4,13 +4,14 @@ defmodule Exfwghtblog.RssBuilder do
   """
   require EEx
   require Logger
-  use GenServer
+  use GenServer, restart: :transient
 
   # ===========================================================================
   # Callbacks
   # ===========================================================================
   @impl true
   def init(_args) do
+    Logger.info("Starting RSS Builder")
     {:ok, reload_generator()}
   end
 
@@ -20,7 +21,6 @@ defmodule Exfwghtblog.RssBuilder do
         _from,
         %{generator: generator} = state
       ) do
-    Logger.debug("RSS feed is being built")
 
     {result, _bindings} =
       Code.eval_quoted(generator, title: title, link: link, description: description, items: items)
@@ -70,14 +70,6 @@ defmodule Exfwghtblog.RssBuilder do
   end
 
   # ===========================================================================
-  # Deprecated public functions
-  # ===========================================================================
-  @deprecated "Use build_feed/1 instead"
-  def build_feed(title, link, description, items) do
-    build_feed(%{title: title, link: link, description: description, items: items})
-  end
-
-  # ===========================================================================
   # Private functions
   #
   # NOTE: These let-it-crash when invalid data is given.
@@ -85,7 +77,6 @@ defmodule Exfwghtblog.RssBuilder do
   # NOTE: Also, Credo seems to like these sorts of calls instead of using case.
   # ===========================================================================
   defp reload_generator() do
-    Logger.notice("RSS template is being reloaded")
     %{generator: EEx.compile_file("lib/exfwghtblog/rss_builder/template.eex")}
   end
 

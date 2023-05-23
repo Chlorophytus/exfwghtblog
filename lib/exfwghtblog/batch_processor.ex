@@ -3,7 +3,8 @@ defmodule Exfwghtblog.BatchProcessor do
   Batches most database/etc. operations into a queue
   """
   import Ecto.Query
-  use GenServer
+  require Logger
+  use GenServer, restart: :transient
 
   @multi_post_fetch_limit 5
 
@@ -12,6 +13,7 @@ defmodule Exfwghtblog.BatchProcessor do
   # ===========================================================================
   @impl true
   def init(args) do
+    Logger.info("Starting Batch Processor")
     {:ok, new_state(args)}
   end
 
