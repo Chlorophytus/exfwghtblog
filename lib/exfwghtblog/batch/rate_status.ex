@@ -17,7 +17,12 @@ defmodule Exfwghtblog.Batch.RateStatus do
       fn ->
         :persistent_term.get(Exfwghtblog.Batch.RateLimits)
         |> Enum.map(fn current_limits ->
-          %{current_limits | last_access: @unix_epoch, remaining: current_limits.limit, reset_const: current_limits.reset}
+          %{
+            current_limits
+            | last_access: @unix_epoch,
+              remaining: current_limits.limit,
+              reset_const: current_limits.reset
+          }
         end)
       end,
       name: name
@@ -46,7 +51,9 @@ defmodule Exfwghtblog.Batch.RateStatus do
       # Get time now
       # Then get the time added with the reset
       # Then subtract it with what time we last accessed
-      case now |> DateTime.add(reset_const) |> DateTime.diff(get_and_update_in(current_limits, [what, :last_access], & {&1, now})) do
+      case now
+           |> DateTime.add(reset_const)
+           |> DateTime.diff(get_and_update_in(current_limits, [what, :last_access], &{&1, now})) do
         time_left when time_left > 0 ->
           # Within rate limit window here
           remaining = get_in(current_limits, [what, :remaining])
@@ -64,7 +71,7 @@ defmodule Exfwghtblog.Batch.RateStatus do
           %{
             current_limits
             | remaining: limit,
-            reset: reset_const
+              reset: reset_const
           }
       end
     end)

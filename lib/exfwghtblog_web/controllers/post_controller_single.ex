@@ -16,7 +16,16 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
     batch_id = conn.assigns[:batch_id]
 
     receive do
-      {:batch_done, id, batch_result} when id == batch_id ->
+      {:batch_done, id, rate_limit_info, batch_result} when id == batch_id ->
+        conn =
+          conn
+          |> merge_resp_headers([
+            {"x-ratelimit-bucket", origin_hash},
+            {"x-ratelimit-limit", get_in(rate_limit_info, [:limit]) |> to_string()},
+            {"x-ratelimit-remaining", get_in(rate_limit_info, [:remaining]) |> to_string()},
+            {"x-ratelimit-reset", get_in(rate_limit_info, [:reset]) |> to_string()}
+          ])
+
         resource =
           conn
           |> Exfwghtblog.Guardian.Plug.current_token()
@@ -31,10 +40,23 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
             conn
             |> render_result(batch_result, nil)
         end
+
+      {:rate_limited, id, rate_limit_info} when id == batch_id ->
+        conn
+        |> merge_resp_headers([
+          {"x-ratelimit-bucket", origin_hash},
+          {"x-ratelimit-limit", get_in(rate_limit_info, [:limit]) |> to_string()},
+          {"x-ratelimit-remaining", get_in(rate_limit_info, [:remaining]) |> to_string()},
+          {"x-ratelimit-reset", get_in(rate_limit_info, [:reset]) |> to_string()}
+        ])
+        |> put_view(html: ExfwghtblogWeb.ErrorHTML)
+        |> put_status(429)
+        |> render("429.html")
     after
       2000 ->
         conn
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
+        |> put_status(500)
         |> render("500.html")
     end
   end
@@ -43,21 +65,19 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
   # Pre-load validation
   # ===========================================================================
   defp preload(conn, _options) do
+    origin_hash = Exfwghtblog.Batch.origin_hash(conn.remote_ip)
     conn = conn |> fetch_query_params()
 
-    case Integer.parse(conn.params["idx"]) do
-      {idx, ""} ->
-        batch_id = Exfwghtblog.BatchProcessor.load_post(idx)
+    idx =
+      case Integer.parse(conn.params["idx"]) do
+        {idx, ""} -> idx
+        _ -> nil
+      end
 
-        conn
-        |> Plug.Conn.assign(:batch_id, batch_id)
+    batch_id = Exfwghtblog.Batch.load_post(idx, origin_hash)
 
-      _ ->
-        conn
-        |> put_view(html: ExfwghtblogWeb.ErrorHTML)
-        |> render("400.html")
-        |> halt()
-    end
+    conn
+    |> Plug.Conn.assign(:batch_id, batch_id)
   end
 
   # ===========================================================================
@@ -67,6 +87,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
     conn
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "The post could not be found")
+    |> put_status(404)
     |> render("404.html")
   end
 
@@ -74,6 +95,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
     conn
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "This post has been deleted")
+    |> put_status(410)
     |> render("410.html")
   end
 

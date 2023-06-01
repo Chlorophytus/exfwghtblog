@@ -16,10 +16,11 @@ defmodule ExfwghtblogWeb.AuthController do
   Logs in a user using the Guardian module
   """
   def login(conn, %{"username" => username, "password" => password}) do
-    batch_id = Exfwghtblog.Batch.check_password(username, password)
+    origin_hash = Exfwghtblog.Batch.origin_hash(conn.remote_ip)
+    batch_id = Exfwghtblog.Batch.check_password(username, password, origin_hash)
 
     receive do
-      {:batch_done, id, batch_result} when id == batch_id ->
+      {:batch_done, id, rate_limit_info, batch_result} when id == batch_id ->
         case batch_result.status do
           :ok ->
             conn =
@@ -29,6 +30,12 @@ defmodule ExfwghtblogWeb.AuthController do
               )
 
             conn
+            |> merge_resp_headers([
+              {"x-ratelimit-bucket", origin_hash},
+              {"x-ratelimit-limit", get_in(rate_limit_info, [:limit]) |> to_string()},
+              {"x-ratelimit-remaining", get_in(rate_limit_info, [:remaining]) |> to_string()},
+              {"x-ratelimit-reset", get_in(rate_limit_info, [:reset]) |> to_string()}
+            ])
             |> put_view(json: ExfwghtblogWeb.AuthJSON)
             |> render(:login_success, token: Exfwghtblog.Guardian.Plug.current_token(conn))
 
@@ -36,10 +43,31 @@ defmodule ExfwghtblogWeb.AuthController do
             code = map_error(error)
 
             conn
+            |> merge_resp_headers([
+              {"x-ratelimit-bucket", origin_hash},
+              {"x-ratelimit-limit",
+               get_in(batch_result, [:rate_limit_info, :limit]) |> to_string()},
+              {"x-ratelimit-remaining",
+               get_in(batch_result, [:rate_limit_info, :remaining]) |> to_string()},
+              {"x-ratelimit-reset",
+               get_in(batch_result, [:rate_limit_info, :reset]) |> to_string()}
+            ])
             |> put_view(json: ExfwghtblogWeb.ErrorJSON)
             |> put_status(code)
             |> render("#{code}.json", reason: error, point: :user)
         end
+
+      {:rate_limited, id, rate_limit_info} when id == batch_id ->
+        conn
+        |> merge_resp_headers([
+          {"x-ratelimit-bucket", origin_hash},
+          {"x-ratelimit-limit", get_in(rate_limit_info, [:limit]) |> to_string()},
+          {"x-ratelimit-remaining", get_in(rate_limit_info, [:remaining]) |> to_string()},
+          {"x-ratelimit-reset", get_in(rate_limit_info, [:reset]) |> to_string()}
+        ])
+        |> put_view(json: ExfwghtblogWeb.ErrorJSON)
+        |> put_status(429)
+        |> render("429.json")
     after
       3000 ->
         conn

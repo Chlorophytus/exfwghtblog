@@ -36,7 +36,8 @@ defmodule Exfwghtblog.Batch.Consumer do
 
     results = events |> Enum.map(&process_instruction/1)
 
-    for %{task: task, from: {from, _from_alias}, event_id: id, rate_limit_info: rate_limit_info} <- results do
+    for %{task: task, from: {from, _from_alias}, event_id: id, rate_limit_info: rate_limit_info} <-
+          results do
       send(from, {:batch_done, id, rate_limit_info, Task.await(task)})
     end
 
@@ -58,31 +59,39 @@ defmodule Exfwghtblog.Batch.Consumer do
          instruction: :load_page,
          arguments: {page}
        }) do
-    %{
-      task:
-        Task.async(fn ->
-          all_count = Exfwghtblog.Repo.aggregate(Exfwghtblog.Post, :count)
+    if is_nil(page) do
+      %{
+        task: Task.async(fn -> :no_content end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            all_count = Exfwghtblog.Repo.aggregate(Exfwghtblog.Post, :count)
 
-          count = div(all_count, @multi_post_fetch_limit)
+            count = div(all_count, @multi_post_fetch_limit)
 
-          offset = all_count - page * @multi_post_fetch_limit
+            offset = all_count - page * @multi_post_fetch_limit
 
-          %{
-            page_count: count,
-            page_offset: div(offset, @multi_post_fetch_limit),
-            fetched:
-              Exfwghtblog.Repo.all(
-                from p in Exfwghtblog.Post,
-                  order_by: [desc: p.id],
-                  where: p.id <= ^offset,
-                  limit: @multi_post_fetch_limit,
-                  preload: [:poster]
-              )
-          }
-        end),
-      from: from,
-      event_id: event_id
-    }
+            %{
+              page_count: count,
+              page_offset: div(offset, @multi_post_fetch_limit),
+              fetched:
+                Exfwghtblog.Repo.all(
+                  from p in Exfwghtblog.Post,
+                    order_by: [desc: p.id],
+                    where: p.id <= ^offset,
+                    limit: @multi_post_fetch_limit,
+                    preload: [:poster]
+                )
+            }
+          end),
+        from: from,
+        event_id: event_id
+      }
+    end
   end
 
   defp process_instruction(%{
@@ -91,16 +100,24 @@ defmodule Exfwghtblog.Batch.Consumer do
          instruction: :load_post,
          arguments: {post_id}
        }) do
-    %{
-      task:
-        Task.async(fn ->
-          Exfwghtblog.Repo.one(
-            from p in Exfwghtblog.Post, where: p.id == ^post_id, preload: [:poster]
-          )
-        end),
-      from: from,
-      event_id: event_id
-    }
+    if is_nil(post_id) do
+      %{
+        task: Task.async(fn -> :no_content end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            Exfwghtblog.Repo.one(
+              from p in Exfwghtblog.Post, where: p.id == ^post_id, preload: [:poster]
+            )
+          end),
+        from: from,
+        event_id: event_id
+      }
+    end
   end
 
   defp process_instruction(%{
@@ -147,14 +164,25 @@ defmodule Exfwghtblog.Batch.Consumer do
          instruction: :publish_entry,
          arguments: {blog_entry}
        }) do
-    %{
-      task:
-        Task.async(fn ->
-          Exfwghtblog.Repo.insert(blog_entry)
-        end),
-      from: from,
-      event_id: event_id
-    }
+    if is_nil(blog_entry) do
+      %{
+        task:
+          Task.async(fn ->
+            :not_logged_in
+          end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            Exfwghtblog.Repo.insert(blog_entry)
+          end),
+        from: from,
+        event_id: event_id
+      }
+    end
   end
 
   defp process_instruction(%{
@@ -163,40 +191,48 @@ defmodule Exfwghtblog.Batch.Consumer do
          instruction: :try_revise_entry,
          arguments: {requester_id, post_id, new_body}
        }) do
-    %{
-      task:
-        Task.async(fn ->
-          results =
-            Ecto.Multi.new()
-            |> Ecto.Multi.one(
-              :post,
-              from(p in Exfwghtblog.Post,
-                where: p.id == ^post_id,
-                select: p,
-                preload: [:poster]
+    if is_nil(requester_id) do
+      %{
+        task: Task.async(fn -> %{status: :not_logged_in} end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            results =
+              Ecto.Multi.new()
+              |> Ecto.Multi.one(
+                :post,
+                from(p in Exfwghtblog.Post,
+                  where: p.id == ^post_id,
+                  select: p,
+                  preload: [:poster]
+                )
               )
-            )
-            |> Ecto.Multi.one(:user, fn %{post: post} ->
-              from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
-            end)
-            |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
-              if user.id == requester_id do
-                Ecto.Changeset.change(post, body: new_body)
-              else
-                :not_your_entry
-              end
-            end)
-            |> Exfwghtblog.Repo.transaction()
+              |> Ecto.Multi.one(:user, fn %{post: post} ->
+                from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
+              end)
+              |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
+                if user.id == requester_id do
+                  Ecto.Changeset.change(post, body: new_body)
+                else
+                  :not_your_entry
+                end
+              end)
+              |> Exfwghtblog.Repo.transaction()
 
-          case results do
-            {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
-            {:ok, _result} -> %{status: :ok}
-            _ -> %{status: :error}
-          end
-        end),
-      from: from,
-      event_id: event_id
-    }
+            case results do
+              {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
+              {:ok, _result} -> %{status: :ok}
+              _ -> %{status: :error}
+            end
+          end),
+        from: from,
+        event_id: event_id
+      }
+    end
   end
 
   defp process_instruction(%{
@@ -205,39 +241,47 @@ defmodule Exfwghtblog.Batch.Consumer do
          instruction: :try_delete_entry,
          arguments: {requester_id, post_id}
        }) do
-    %{
-      task:
-        Task.async(fn ->
-          results =
-            Ecto.Multi.new()
-            |> Ecto.Multi.one(
-              :post,
-              from(p in Exfwghtblog.Post,
-                where: p.id == ^post_id,
-                select: p,
-                preload: [:poster]
+    if is_nil(requester_id) do
+      %{
+        task: Task.async(fn -> %{status: :not_logged_in} end),
+        from: from,
+        event_id: event_id
+      }
+    else
+      %{
+        task:
+          Task.async(fn ->
+            results =
+              Ecto.Multi.new()
+              |> Ecto.Multi.one(
+                :post,
+                from(p in Exfwghtblog.Post,
+                  where: p.id == ^post_id,
+                  select: p,
+                  preload: [:poster]
+                )
               )
-            )
-            |> Ecto.Multi.one(:user, fn %{post: post} ->
-              from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
-            end)
-            |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
-              if user.id == requester_id do
-                Ecto.Changeset.change(post, deleted: true)
-              else
-                :not_your_entry
-              end
-            end)
-            |> Exfwghtblog.Repo.transaction()
+              |> Ecto.Multi.one(:user, fn %{post: post} ->
+                from(u in Exfwghtblog.User, where: u.id == ^post.poster_id, select: u)
+              end)
+              |> Ecto.Multi.update(:edit, fn %{post: post, user: user} ->
+                if user.id == requester_id do
+                  Ecto.Changeset.change(post, deleted: true)
+                else
+                  :not_your_entry
+                end
+              end)
+              |> Exfwghtblog.Repo.transaction()
 
-          case results do
-            {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
-            {:ok, _result} -> %{status: :ok}
-            _ -> %{status: :error}
-          end
-        end),
-      from: from,
-      event_id: event_id
-    }
+            case results do
+              {:ok, %{edit: :not_your_entry} = _result} -> %{status: :not_your_entry}
+              {:ok, _result} -> %{status: :ok}
+              _ -> %{status: :error}
+            end
+          end),
+        from: from,
+        event_id: event_id
+      }
+    end
   end
 end

@@ -105,13 +105,16 @@ defmodule Exfwghtblog.Batch do
   """
   def get_or_start_origin(origin_hash) do
     case Registry.lookup(Exfwghtblog.Batch.Registry, origin_hash) do
-      [{_, process}] -> process
+      [{_, process}] ->
+        process
+
       [] ->
         {:ok, process} = __MODULE__.RateStatusSupervisor.start_child()
         {:ok, ^process} = Registry.register(__MODULE__.Registry, origin_hash, process)
         process
     end
   end
+
   # ===========================================================================
   # Callbacks
   # ===========================================================================

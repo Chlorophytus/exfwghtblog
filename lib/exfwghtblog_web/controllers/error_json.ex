@@ -27,8 +27,19 @@ defmodule ExfwghtblogWeb.ErrorJSON do
     %{ok: false, detail: "This is not your post"}
   end
 
+  def render("401.json", %{reason: :not_logged_in}) do
+    %{ok: false, detail: "Not logged in"}
+  end
+
   def render("401.json", _assigns) do
     %{ok: false, detail: "Unauthorized"}
+  end
+
+  # ===========================================================================
+  # ERROR 429
+  # ===========================================================================
+  def render("429.json", _assigns) do
+    %{ok: false, detail: "You are being rate limited"}
   end
 
   # ===========================================================================
