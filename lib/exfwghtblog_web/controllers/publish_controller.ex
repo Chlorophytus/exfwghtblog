@@ -31,7 +31,6 @@ defmodule ExfwghtblogWeb.PublishController do
         {:batch_done, id, batch_result} when id == batch_id ->
           case batch_result.status do
             :ok ->
-
               conn
               |> put_view(json: ExfwghtblogWeb.PublishJSON)
               |> render(:edit_success)
@@ -69,7 +68,6 @@ defmodule ExfwghtblogWeb.PublishController do
         {:batch_done, id, batch_result} when id == batch_id ->
           case batch_result.status do
             :ok ->
-
               conn
               |> put_view(json: ExfwghtblogWeb.PublishJSON)
               |> render(:delete_success)

@@ -1,136 +1,63 @@
-defmodule Exfwghtblog.BatchProcessor do
+defmodule Exfwghtblog.Batch.Consumer do
   @moduledoc """
-  Batches most database/etc. operations into a queue
+  Handles events sent from a `Batch.Producer`
   """
   import Ecto.Query
+  use GenStage, restart: :transient
   require Logger
-  use GenServer, restart: :transient
 
   @multi_post_fetch_limit 5
-
-  # ===========================================================================
-  # Callbacks
-  # ===========================================================================
-  @impl true
-  def init(args) do
-    Logger.info("Starting Batch Processor")
-    {:ok, new_state(args)}
-  end
-
-  @impl true
-  def handle_call({:batch_enqueue, instruction}, from, state) do
-    event_id = :erlang.unique_integer()
-
-    {:reply, event_id,
-     %{state | event_queue: :queue.snoc(state.event_queue, {event_id, from, instruction})}}
-  end
-
-  @impl true
-  def handle_info(:process_timer, state) do
-    :telemetry.execute(
-      [:exfwghtblog, :batch_processor],
-      %{congestion: :queue.len(state.event_queue)},
-      %{}
-    )
-
-    if not :queue.is_empty(state.event_queue) do
-      results =
-        :queue.to_list(state.event_queue)
-        |> Enum.map(&process_instruction/1)
-
-      for %{task: task, from: {from, _from_alias}, event_id: id} <- results do
-        send(from, {:batch_done, id, Task.await(task)})
-      end
-    end
-
-    {:noreply, new_state(state.args)}
-  end
-
-  @impl true
-  def code_change(_old_vsn, state, _extra) do
-    {:ok,
-     %{state | batch_timer: Process.send_after(self(), :process_timer, state.args.batch_interval)}}
-  end
 
   # ===========================================================================
   # Public functions
   # ===========================================================================
   @doc """
-  Initializes the batch processor server
+  Initializes a Consumer
+
+  Don't name processes that are dynamically spawned
   """
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    GenStage.start_link(__MODULE__, args)
   end
 
-  @doc """
-  Enqueues a multi-post read
+  # ===========================================================================
+  # Callbacks
+  # ===========================================================================
+  @impl true
+  def init(_args) do
+    Logger.debug("Starting Batch Consumer")
 
-  Returns an ID representing the enqueued operation
-  """
-  def load_page(page) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:load_page, page}})
+    {:consumer, :the_state_does_not_matter, subscribe_to: [Exfwghtblog.Batch.RateLimiter]}
   end
 
-  @doc """
-  Enqueues a single-post read
+  @impl true
+  def handle_events(events, _from, state) do
+    Logger.debug("Handling #{length(events)} events")
 
-  Returns an ID representing the enqueued operation
-  """
-  def load_post(idx) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:load_post, idx}})
+    results = events |> Enum.map(&process_instruction/1)
+
+    for %{task: task, from: {from, _from_alias}, event_id: id, rate_limit_info: rate_limit_info} <- results do
+      send(from, {:batch_done, id, rate_limit_info, Task.await(task)})
+    end
+
+    {:noreply, [], state}
   end
 
-  @doc """
-  Enqueues an account check
-
-  Returns an ID representing the enqueued operation
-  """
-  def check_password(username, password) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:check_password, username, password}})
-  end
-
-  @doc """
-  Enqueues a blog post publishing
-
-  Returns an ID representing the enqueued operation
-  """
-  def publish_entry(blog_entry) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:publish_entry, blog_entry}})
-  end
-
-  @doc """
-  Enqueues a blog post editing
-
-  Returns an ID representing the enqueued operation
-  """
-  def try_revise_entry(requester_id, post_id, new_body) do
-    GenServer.call(
-      __MODULE__,
-      {:batch_enqueue, {:try_revise_entry, requester_id, post_id, new_body}}
-    )
-  end
-
-  @doc """
-  Enqueues a blog post deletion
-
-  Returns an ID representing the enqueued operation
-  """
-  def try_delete_entry(requester_id, post_id) do
-    GenServer.call(__MODULE__, {:batch_enqueue, {:try_delete_entry, requester_id, post_id}})
+  @impl true
+  def code_change(_old_vsn, state, _extra) do
+    {:ok, state}
   end
 
   # ===========================================================================
   # Private functions
   # ===========================================================================
-  defp new_state(args) do
-    %{
-      event_queue: :queue.new(),
-      batch_timer: Process.send_after(self(), :process_timer, args.batch_interval),
-      args: args
-    }
-  end
-
-  defp process_instruction({event_id, from, {:load_page, page}}) do
+  # NOTE: Origin Hash is only used in rate limiting stages
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :load_page,
+         arguments: {page}
+       }) do
     %{
       task:
         Task.async(fn ->
@@ -158,7 +85,30 @@ defmodule Exfwghtblog.BatchProcessor do
     }
   end
 
-  defp process_instruction({event_id, from, {:check_password, username, password}}) do
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :load_post,
+         arguments: {post_id}
+       }) do
+    %{
+      task:
+        Task.async(fn ->
+          Exfwghtblog.Repo.one(
+            from p in Exfwghtblog.Post, where: p.id == ^post_id, preload: [:poster]
+          )
+        end),
+      from: from,
+      event_id: event_id
+    }
+  end
+
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :check_password,
+         arguments: {username, password}
+       }) do
     user =
       Exfwghtblog.Repo.one(
         from u in Exfwghtblog.User, where: ilike(u.username, ^username), select: u
@@ -191,7 +141,12 @@ defmodule Exfwghtblog.BatchProcessor do
     end
   end
 
-  defp process_instruction({event_id, from, {:publish_entry, blog_entry}}) do
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :publish_entry,
+         arguments: {blog_entry}
+       }) do
     %{
       task:
         Task.async(fn ->
@@ -202,7 +157,12 @@ defmodule Exfwghtblog.BatchProcessor do
     }
   end
 
-  defp process_instruction({event_id, from, {:try_revise_entry, requester_id, post_id, new_body}}) do
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :try_revise_entry,
+         arguments: {requester_id, post_id, new_body}
+       }) do
     %{
       task:
         Task.async(fn ->
@@ -239,7 +199,12 @@ defmodule Exfwghtblog.BatchProcessor do
     }
   end
 
-  defp process_instruction({event_id, from, {:try_delete_entry, requester_id, post_id}}) do
+  defp process_instruction(%{
+         event_id: event_id,
+         from: from,
+         instruction: :try_delete_entry,
+         arguments: {requester_id, post_id}
+       }) do
     %{
       task:
         Task.async(fn ->
@@ -270,19 +235,6 @@ defmodule Exfwghtblog.BatchProcessor do
             {:ok, _result} -> %{status: :ok}
             _ -> %{status: :error}
           end
-        end),
-      from: from,
-      event_id: event_id
-    }
-  end
-
-  defp process_instruction({event_id, from, {:load_post, post_id}}) do
-    %{
-      task:
-        Task.async(fn ->
-          Exfwghtblog.Repo.one(
-            from p in Exfwghtblog.Post, where: p.id == ^post_id, preload: [:poster]
-          )
         end),
       from: from,
       event_id: event_id

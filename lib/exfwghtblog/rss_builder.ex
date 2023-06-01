@@ -11,7 +11,7 @@ defmodule Exfwghtblog.RssBuilder do
   # ===========================================================================
   @impl true
   def init(_args) do
-    Logger.info("Starting RSS Builder")
+    Logger.debug("Starting RSS Builder")
     {:ok, reload_generator()}
   end
 
@@ -21,7 +21,6 @@ defmodule Exfwghtblog.RssBuilder do
         _from,
         %{generator: generator} = state
       ) do
-
     {result, _bindings} =
       Code.eval_quoted(generator, title: title, link: link, description: description, items: items)
 

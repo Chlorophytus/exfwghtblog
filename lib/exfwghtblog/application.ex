@@ -32,8 +32,8 @@ defmodule Exfwghtblog.Application do
       # Start a worker by calling: Exfwghtblog.Worker.start_link(arg)
       # {Exfwghtblog.Worker, arg}
 
-      Exfwghtblog.BatchSupervisor,
-      Exfwghtblog.RssSupervisor,
+      Exfwghtblog.Batch,
+      Exfwghtblog.RssSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

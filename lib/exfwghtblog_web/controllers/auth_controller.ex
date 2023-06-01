@@ -10,12 +10,13 @@ defmodule ExfwghtblogWeb.AuthController do
 
   defp map_error(:does_not_exist), do: 500
   defp map_error(:invalid_password), do: 401
+  defp map_error(:rate_limited), do: 429
 
   @doc """
   Logs in a user using the Guardian module
   """
   def login(conn, %{"username" => username, "password" => password}) do
-    batch_id = Exfwghtblog.BatchProcessor.check_password(username, password)
+    batch_id = Exfwghtblog.Batch.check_password(username, password)
 
     receive do
       {:batch_done, id, batch_result} when id == batch_id ->
