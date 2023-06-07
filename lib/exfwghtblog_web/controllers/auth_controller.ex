@@ -5,6 +5,10 @@ defmodule ExfwghtblogWeb.AuthController do
   import ExfwghtblogWeb.Gettext
   use ExfwghtblogWeb, :controller
 
+  plug Hammer.Plug,
+    rate_limit: {"auth:login", 60_000, 3},
+    on_deny: &ExfwghtblogWeb.ErrorController.rate_limited_json/2
+
   # How many minutes should we keep the user logged in?
   def get_ttl_minutes(), do: 10
 

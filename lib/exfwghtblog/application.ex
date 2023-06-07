@@ -33,7 +33,7 @@ defmodule Exfwghtblog.Application do
       # {Exfwghtblog.Worker, arg}
 
       Exfwghtblog.BatchSupervisor,
-      Exfwghtblog.RssSupervisor,
+      Exfwghtblog.RssSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

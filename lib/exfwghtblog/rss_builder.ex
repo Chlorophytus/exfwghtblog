@@ -21,7 +21,6 @@ defmodule Exfwghtblog.RssBuilder do
         _from,
         %{generator: generator} = state
       ) do
-
     {result, _bindings} =
       Code.eval_quoted(generator, title: title, link: link, description: description, items: items)
 

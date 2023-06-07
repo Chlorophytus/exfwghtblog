@@ -16,6 +16,9 @@ config :os_mon,
   start_memsup: true,
   start_os_sup: true
 
+config :hammer,
+  backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 2, cleanup_interval_ms: 60_000 * 2]}
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

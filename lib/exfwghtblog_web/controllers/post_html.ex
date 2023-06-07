@@ -192,7 +192,12 @@ defmodule ExfwghtblogWeb.PostHTML do
 
     ~H"""
     <div class="bg-slate-100 p-6 shadow-md">
-      <form data-idx={@id} id="edit-form" action={~p"/api/secure/publish/#{@id}"} class="w-full m-auto">
+      <form
+        data-idx={@id}
+        id="edit-form"
+        action={~p"/api/secure/publish/#{@id}"}
+        class="w-full m-auto"
+      >
         <h2 class="font-bold text-xl"><%= @title %> <i>(editing)</i></h2>
         <p><%= @summary %></p>
         <br />
@@ -217,16 +222,21 @@ defmodule ExfwghtblogWeb.PostHTML do
   # ===========================================================================
   # Delete single posts
   # ===========================================================================
-  def single_delete(%{batch_result: %Exfwghtblog.Post{
+  def single_delete(
+        %{
+          batch_result: %Exfwghtblog.Post{
             id: id,
             summary: summary,
             title: title
-          }} = assigns) do
+          }
+        } = assigns
+      ) do
     assigns =
       assigns
       |> assign(:id, id)
       |> assign(:summary, summary)
       |> assign(:title, title)
+
     ~H"""
     <div class="bg-slate-100 p-6 shadow-md">
       <h2 class="font-bold text-xl"><%= @title %> <i>(deletion)</i></h2>

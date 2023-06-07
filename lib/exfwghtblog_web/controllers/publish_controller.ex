@@ -6,6 +6,10 @@ defmodule ExfwghtblogWeb.PublishController do
 
   use ExfwghtblogWeb, :controller
 
+  plug Hammer.Plug,
+    rate_limit: {"post:publish", 60_000, 1},
+    on_deny: &ExfwghtblogWeb.ErrorController.rate_limited/2
+
   defp map_error(:error), do: 500
   defp map_error(:not_your_entry), do: 401
 
@@ -31,7 +35,6 @@ defmodule ExfwghtblogWeb.PublishController do
         {:batch_done, id, batch_result} when id == batch_id ->
           case batch_result.status do
             :ok ->
-
               conn
               |> put_view(json: ExfwghtblogWeb.PublishJSON)
               |> render(:edit_success)
@@ -69,7 +72,6 @@ defmodule ExfwghtblogWeb.PublishController do
         {:batch_done, id, batch_result} when id == batch_id ->
           case batch_result.status do
             :ok ->
-
               conn
               |> put_view(json: ExfwghtblogWeb.PublishJSON)
               |> render(:delete_success)

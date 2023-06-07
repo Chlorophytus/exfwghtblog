@@ -5,6 +5,10 @@ defmodule ExfwghtblogWeb.RssController do
   import Ecto.Query
   use ExfwghtblogWeb, :controller
 
+  plug Hammer.Plug,
+    rate_limit: {"post:load_rss", 5_000, 1},
+    on_deny: &ExfwghtblogWeb.ErrorController.rate_limited/2
+
   @fetch_limit 25
 
   def fetch(conn, _params) do

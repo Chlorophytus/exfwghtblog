@@ -4,6 +4,10 @@ defmodule ExfwghtblogWeb.PostControllerMulti do
   """
   use ExfwghtblogWeb, :controller
 
+  plug Hammer.Plug,
+    rate_limit: {"post:load_multi", 5_000, 2},
+    on_deny: &ExfwghtblogWeb.ErrorController.rate_limited/2
+
   plug :preload
 
   # ===========================================================================

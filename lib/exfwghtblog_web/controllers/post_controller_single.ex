@@ -4,6 +4,10 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
   """
   use ExfwghtblogWeb, :controller
 
+  plug Hammer.Plug,
+    rate_limit: {"post:load_single", 5_000, 2},
+    on_deny: &ExfwghtblogWeb.ErrorController.rate_limited/2
+
   plug :preload
 
   # ===========================================================================
