@@ -16,6 +16,7 @@ defmodule Exfwghtblog.APITest do
     assert content_type |> String.contains?("application/json")
     assert conn.status == 501
   end
+
   # ===========================================================================
   test "returns version info with HTTP 'GET' to /version" do
     conn = conn(:get, "/version")
@@ -28,6 +29,7 @@ defmodule Exfwghtblog.APITest do
     assert content_type |> String.contains?("application/json")
     assert conn.status == 200
   end
+
   # ===========================================================================
   test "returns health check with HTTP 'GET' to /health" do
     conn = conn(:get, "/health")
@@ -40,12 +42,13 @@ defmodule Exfwghtblog.APITest do
     assert content_type |> String.contains?("application/json")
     assert conn.status == 200
   end
-  # ===========================================================================
-  test "allows login with HTTP 'POST'/secure/login"
-  test "allows publishing with HTTP 'POST' to /secure/modify, returns post ID"
 
-  test "allows editing post ID 'N' content with HTTP 'PUT' to /secure/modify/N"
-  test "allows deleting post ID 'N' content with HTTP 'DELETE' to /secure/modify/N"
+  # ===========================================================================
+  test "allows login with HTTP 'POST'/login"
+  test "allows publishing with HTTP 'POST' to /publish, returns post ID"
+
+  test "allows editing post ID 'N' content with HTTP 'PUT' to /posts/N"
+  test "allows deleting post ID 'N' content with HTTP 'DELETE' to /posts/N"
 
   test "allows fetching RSS feed with HTTP 'GET' to /rss"
 

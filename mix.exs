@@ -7,6 +7,7 @@ defmodule Exfwghtblog.MixProject do
       version: "0.6.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -37,12 +38,27 @@ defmodule Exfwghtblog.MixProject do
       # PostgreSQL database client
       {:postgrex, "~> 0.17.2"},
 
-      # Code well-formedness enhancement
+      # Authentication cookies
+      {:guardian, "~> 2.3"},
+
+      # Authentication passwords
+      {:argon2_elixir, "~> 3.1"},
+
+      # Code well-formedness enhancements
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
 
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "ecto.setup"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
 end

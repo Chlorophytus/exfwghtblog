@@ -21,7 +21,7 @@ defmodule Exfwghtblog.Application do
     # Start the application's children
     children = [
       # `repo.ex`
-      # Exfwghtblog.Repo,
+      Exfwghtblog.Repo,
 
       # `api.ex`
       {Plug.Cowboy,
