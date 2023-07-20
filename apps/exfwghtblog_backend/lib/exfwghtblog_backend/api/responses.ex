@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.API.Responses do
+defmodule ExfwghtblogBackend.API.Responses do
   @moduledoc """
   Static non-error responses sent as needed
 
@@ -14,7 +14,7 @@ defmodule Exfwghtblog.API.Responses do
   end
 
   def map_json(:version) do
-    %{e: :ok, status: :version, version: :persistent_term.get(Exfwghtblog.Version) |> to_string}
+    %{e: :ok, status: :version, version: :persistent_term.get(ExfwghtblogBackend.Version) |> to_string}
   end
 
   def map_json({:published, id}) do

@@ -2,10 +2,10 @@
 import Config
 
 # Get Git commit hash. Surely there must be a better way.
-config :exfwghtblog, commit_sha_result: System.cmd("git", ["symbolic-ref", "--short", "HEAD"])
+config :exfwghtblog_backend, commit_sha_result: System.cmd("git", ["symbolic-ref", "--short", "HEAD"])
 
 # Configure postgres database
-config :exfwghtblog, Exfwghtblog.Repo,
+config :exfwghtblog_backend, ExfwghtblogBackend.Repo,
   username: "postgres",
   password: "change_me",
   hostname: "127.0.0.1",

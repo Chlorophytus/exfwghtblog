@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.API.Prelude do
+defmodule ExfwghtblogBackend.API.Prelude do
   @moduledoc """
   Different convenience/prelude plugs
   """

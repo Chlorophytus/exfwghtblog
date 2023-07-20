@@ -6,8 +6,9 @@ Elixir Featherweight Blog
 
 ### How to register an account
 
+With the backend
 ```elixir
-iex> Exfwghtblog.Administration.new_user(user, password)
+iex> ExfwghtblogBackend.Administration.new_user(user, password)
 ```
 
 Be warned that all registered accounts have posting privileges.

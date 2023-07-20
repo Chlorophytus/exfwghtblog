@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.Repo.User do
+defmodule ExfwghtblogBackend.Repo.User do
   @moduledoc """
   A blog publishing user
   """
@@ -8,7 +8,7 @@ defmodule Exfwghtblog.Repo.User do
   schema "users" do
     field(:pass_hash, :binary, redact: true)
     field(:username, :string)
-    has_many(:posts, Exfwghtblog.Repo.Post, foreign_key: :poster_id)
+    has_many(:posts, ExfwghtblogBackend.Repo.Post, foreign_key: :poster_id)
 
     timestamps()
   end

@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.Repo.Migrations.CreateUsers do
+defmodule ExfwghtblogBackend.Repo.Migrations.CreateUsers do
   use Ecto.Migration
 
   def change do

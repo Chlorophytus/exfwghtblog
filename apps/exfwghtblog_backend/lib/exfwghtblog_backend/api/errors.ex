@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.API.Errors do
+defmodule ExfwghtblogBackend.API.Errors do
   @moduledoc """
   Static error responses sent as needed
   """

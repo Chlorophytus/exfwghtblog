@@ -1,8 +1,8 @@
-defmodule Exfwghtblog.API do
+defmodule ExfwghtblogBackend.API do
   @moduledoc """
   Router for HTTP REST-based API endpoints
   """
-  alias Exfwghtblog.Guardian.Plug, as: Auth
+  alias ExfwghtblogBackend.Guardian.Plug, as: Auth
   alias __MODULE__.Errors
   alias __MODULE__.Responses
 
@@ -47,8 +47,8 @@ defmodule Exfwghtblog.API do
     start_time = DateTime.utc_now()
 
     user =
-      Exfwghtblog.Repo.one(
-        from(u in Exfwghtblog.Repo.User,
+      ExfwghtblogBackend.Repo.one(
+        from(u in ExfwghtblogBackend.Repo.User,
           where: ilike(u.username, ^conn.body_params["username"]),
           select: u
         )
@@ -68,7 +68,7 @@ defmodule Exfwghtblog.API do
       Argon2.verify_pass(conn.body_params["password"], user.pass_hash) ->
         conn
         |> Auth.sign_in(%{
-          ttl: {Application.fetch_env!(:exfwghtblog, :session_ttl_minutes), :minutes}
+          ttl: {Application.fetch_env!(:exfwghtblog_backend, :session_ttl_minutes), :minutes}
         })
 
         token = conn |> Auth.current_token()
@@ -119,9 +119,9 @@ defmodule Exfwghtblog.API do
       summary = conn.body_params["summary"] || ""
       body = conn.body_params["body"] || ""
 
-      title_limit = Application.fetch_env!(:exfwghtblog, :title_limit)
-      summary_limit = Application.fetch_env!(:exfwghtblog, :summary_limit)
-      body_limit = Application.fetch_env!(:exfwghtblog, :body_limit)
+      title_limit = Application.fetch_env!(:exfwghtblog_backend, :title_limit)
+      summary_limit = Application.fetch_env!(:exfwghtblog_backend, :summary_limit)
+      body_limit = Application.fetch_env!(:exfwghtblog_backend, :body_limit)
 
       if Enum.all?([
            title != "",
@@ -133,7 +133,7 @@ defmodule Exfwghtblog.API do
          ]) do
         poster = conn |> Auth.current_resource()
 
-        post = %Exfwghtblog.Repo.Post{
+        post = %ExfwghtblogBackend.Repo.Post{
           poster: poster,
           deleted: false,
           title: title,
@@ -141,7 +141,7 @@ defmodule Exfwghtblog.API do
           body: body
         }
 
-        case Exfwghtblog.Repo.insert(post) do
+        case ExfwghtblogBackend.Repo.insert(post) do
           {:ok, result} ->
             {:ok, json} =
               Responses.map_json({:published, result.id})
@@ -156,12 +156,12 @@ defmodule Exfwghtblog.API do
 
             conn |> send_resp(500, json)
         end
-      end
-    else
-      {:ok, json} =
-        Errors.map_json(500) |> Responses.add_response_time(start_time) |> Jason.encode()
+      else
+        {:ok, json} =
+          Errors.map_json(500) |> Responses.add_response_time(start_time) |> Jason.encode()
 
-      conn |> send_resp(500, json)
+        conn |> send_resp(500, json)
+      end
     end
   end
 

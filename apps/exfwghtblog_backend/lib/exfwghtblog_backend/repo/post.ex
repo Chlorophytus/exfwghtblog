@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.Repo.Post do
+defmodule ExfwghtblogBackend.Repo.Post do
   @moduledoc """
   A post made by a User
   """
@@ -10,7 +10,7 @@ defmodule Exfwghtblog.Repo.Post do
     field(:deleted, :boolean, default: false)
     field(:summary, :string)
     field(:title, :string)
-    belongs_to(:poster, Exfwghtblog.Repo.User)
+    belongs_to(:poster, ExfwghtblogBackend.Repo.User)
 
     timestamps()
   end

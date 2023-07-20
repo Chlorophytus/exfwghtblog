@@ -1,4 +1,4 @@
-defmodule Exfwghtblog.Guardian do
+defmodule ExfwghtblogBackend.Guardian do
   @moduledoc """
   The Guardian module usage itself
   """
@@ -18,11 +18,11 @@ defmodule Exfwghtblog.Guardian do
   end
 
   @doc """
-  Given a subject, return a `Exfwghtblog.Repo.User` or nothing
+  Given a subject, return a `ExfwghtblogBackend.Repo.User` or nothing
   """
   def resource_from_claims(%{"sub" => id}) do
     resource =
-      Exfwghtblog.Repo.one(from(u in Exfwghtblog.Repo.User, where: u.id == ^id, select: u))
+      ExfwghtblogBackend.Repo.one(from(u in ExfwghtblogBackend.Repo.User, where: u.id == ^id, select: u))
 
     {:ok, resource}
   end

@@ -1,14 +1,14 @@
-defmodule Exfwghtblog.APITest do
+defmodule ExfwghtblogBackend.APITest do
   use ExUnit.Case, async: true
   use Plug.Test
-  doctest Exfwghtblog.API
+  doctest ExfwghtblogBackend.API
 
-  @opts Exfwghtblog.API.init([])
+  @opts ExfwghtblogBackend.API.init([])
   # ===========================================================================
   test "returns HTTP 501 status when requesting unimplemented endpoints" do
     conn = conn(:get, "/invalid")
 
-    conn = Exfwghtblog.API.call(conn, @opts)
+    conn = ExfwghtblogBackend.API.call(conn, @opts)
 
     [content_type] = conn |> get_resp_header("content-type")
 
@@ -21,7 +21,7 @@ defmodule Exfwghtblog.APITest do
   test "returns version info with HTTP 'GET' to /version" do
     conn = conn(:get, "/version")
 
-    conn = Exfwghtblog.API.call(conn, @opts)
+    conn = ExfwghtblogBackend.API.call(conn, @opts)
 
     [content_type] = conn |> get_resp_header("content-type")
 
@@ -34,7 +34,7 @@ defmodule Exfwghtblog.APITest do
   test "returns health check with HTTP 'GET' to /health" do
     conn = conn(:get, "/health")
 
-    conn = Exfwghtblog.API.call(conn, @opts)
+    conn = ExfwghtblogBackend.API.call(conn, @opts)
 
     [content_type] = conn |> get_resp_header("content-type")
 
