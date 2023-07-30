@@ -66,10 +66,9 @@ defmodule ExfwghtblogBackend.API do
         conn |> send_resp(401, json)
 
       Argon2.verify_pass(conn.body_params["password"], user.pass_hash) ->
-        conn
-        |> Auth.sign_in(%{
-          ttl: {Application.fetch_env!(:exfwghtblog_backend, :session_ttl_minutes), :minutes}
-        })
+        conn =
+          conn
+          |> Auth.sign_in(user, %{typ: "access"}, ttl: {Application.fetch_env!(:exfwghtblog_backend, :session_ttl_minutes), :minute})
 
         token = conn |> Auth.current_token()
 
