@@ -4,8 +4,9 @@ defmodule ExfwghtblogBackend.Administration do
   """
 
   @doc """
-  Generates a new user. Be careful as all users are allowed to post blog
-  entries.
+  Generates a new user
+
+  Be careful as all users are allowed to post blog entries
   """
   def new_user(username, password) do
     ExfwghtblogBackend.Repo.insert(%ExfwghtblogBackend.Repo.User{
@@ -15,16 +16,24 @@ defmodule ExfwghtblogBackend.Administration do
   end
 
   @doc """
-  Deletes a post from the general public.
+  Deletes a post from the general public
+
+  Be careful as you aren't able to restore posts once they're deleted
   """
   def delete_post(id) do
     Ecto.Changeset.change(%ExfwghtblogBackend.Repo.Post{id: id}, deleted: true)
+    |> ExfwghtblogBackend.Repo.update()
   end
 
   @doc """
-  Makes a deleted post visible to the general public.
+  Publishes a post
   """
-  def undelete_post(id) do
-    Ecto.Changeset.change(%ExfwghtblogBackend.Repo.Post{id: id}, deleted: false)
+  def publish_post(poster, title, summary, body) do
+    ExfwghtblogBackend.Repo.insert(%ExfwghtblogBackend.Repo.Post{
+      poster: poster,
+      title: title,
+      summary: summary,
+      body: body
+    })
   end
 end

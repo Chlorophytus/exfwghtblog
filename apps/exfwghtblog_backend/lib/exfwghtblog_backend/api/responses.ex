@@ -33,6 +33,14 @@ defmodule ExfwghtblogBackend.API.Responses do
     %{e: :ok, status: :logged_out}
   end
 
+  def map_json({:page, page_count, page_data}) do
+    %{e: :ok, status: :page, count: page_count, data: page_data}
+  end
+
+  def map_json({:post, post_data}) do
+    %{e: :ok, status: :post, data: post_data}
+  end
+
   def add_response_time(response, start_time) do
     milliseconds = DateTime.utc_now() |> DateTime.diff(start_time, :millisecond)
 

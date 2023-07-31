@@ -9,8 +9,18 @@ config :exfwghtblog_backend, ExfwghtblogBackend.Repo,
   database: "exfwghtblog_test",
   pool: Ecto.Adapters.SQL.Sandbox
 
-# Set sesion time-to-live low
-config :exfwghtblog_backend, session_ttl_minutes: 5
+# Set attributes
+config :exfwghtblog_backend,
+  # Login time-to-live is 5 minutes
+  session_ttl_minutes: 5,
+  # Blog titles are up to 80 characters
+  title_limit: 80,
+  # Blog summaries are up to 250 characters
+  summary_limit: 250,
+  # Blog bodies are up to 5000 characters
+  body_limit: 5000,
+  # Limit pages to 5 posts
+  post_fetch_count: 5
 
 # Set Guardian secret
 config :exfwghtblog_backend, ExfwghtblogBackend.Guardian,

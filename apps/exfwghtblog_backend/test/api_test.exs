@@ -19,10 +19,8 @@ defmodule ExfwghtblogBackend.APITest do
   end
 
   # ===========================================================================
-  test "allows publishing with HTTP 'POST' to /publish, returns post ID"
   test "allows editing post ID 'N' content with HTTP 'PUT' to /posts/N"
   test "allows deleting post ID 'N' content with HTTP 'DELETE' to /posts/N"
   test "allows fetching RSS feed with HTTP 'GET' to /rss"
-  test "allows fetching post list with HTTP 'GET' to /posts"
   test "allows fetching post ID 'N' with HTTP 'GET' to /posts/N"
 end

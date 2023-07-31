@@ -49,6 +49,9 @@ defmodule ExfwghtblogBackend.MixProject do
       # Authentication passwords
       {:argon2_elixir, "~> 3.1"},
 
+      # Log the remote IP address if we're using a reverse proxy
+      {:remote_ip, "~> 1.1"},
+
       # Code well-formedness enhancements
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
