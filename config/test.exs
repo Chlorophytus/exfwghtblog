@@ -1,6 +1,16 @@
 # Testing mode configuration
 import Config
 
+# We don't run a server during test. If one is required,
+# you can enable the server option below.
+config :exfwghtblog_frontend, ExfwghtblogFrontend.Endpoint,
+  http: [ip: {127, 0, 0, 1}, port: 4002],
+  secret_key_base: "fzqYfAin3IHaE64qHldLpghXMyns5XUJxA13r8sGLVRR3a6P4sZZloL1ugRcSko3",
+  server: false
+
+# =============================================================================
+# Backend configuration
+# =============================================================================
 # Configure postgres database
 config :exfwghtblog_backend, ExfwghtblogBackend.Repo,
   username: "postgres",

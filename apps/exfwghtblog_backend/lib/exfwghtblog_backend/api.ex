@@ -34,6 +34,25 @@ defmodule ExfwghtblogBackend.API do
   # ===========================================================================
   # Endpoints
   # ===========================================================================
+  get "/whoami" do
+    user =
+      if conn |> Auth.authenticated?() do
+        {:ok, logged_in_as, _claims} =
+          conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
+
+        logged_in_as.username
+      else
+        nil
+      end
+
+    {:ok, json} =
+      Responses.map_json({:whoami, user})
+      |> Responses.add_response_time(conn.private.start_time)
+      |> Jason.encode()
+
+    conn |> send_resp(200, json)
+  end
+
   get "/health" do
     {:ok, json} =
       Responses.map_json(:health_check)

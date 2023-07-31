@@ -25,6 +25,10 @@ defmodule ExfwghtblogBackend.API.Responses do
     %{e: :ok, status: :published, post_id: id}
   end
 
+  def map_json({:whoami, user}) do
+    %{e: :ok, status: :whoami, username: user}
+  end
+
   def map_json(:revised) do
     %{e: :ok, status: :revised}
   end

@@ -6,17 +6,14 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
   @publish_amount 4
 
   defp create_and_log_in() do
-    test_username =
-      :crypto.hash(:sha3_256, :erlang.unique_integer() |> to_string) |> Base.encode16()
-
-    ExfwghtblogBackend.Administration.new_user(test_username, "12345")
+    ExfwghtblogBackend.Administration.new_user("test_user", "12345")
 
     conn =
       conn(
         :post,
         "/login",
         Jason.encode!(%{
-          username: test_username,
+          username: "test_user",
           password: "12345"
         })
       )
@@ -163,8 +160,9 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
   end
 
   # ===========================================================================
-  test "allows HTTP 'DELETE' to /posts/3 (single delete)", %{token: token}do
-    conn = conn(:delete, "/posts/3")
+  test "allows HTTP 'DELETE' to /posts/3 (single delete)", %{token: token} do
+    conn =
+      conn(:delete, "/posts/3")
       |> put_req_header("authorization", "Bearer " <> token)
       |> put_req_header("content-type", "application/json")
 
@@ -190,5 +188,44 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
     assert conn.state == :sent
     assert content_type |> String.contains?("application/json")
     assert conn.status == 410
+  end
+
+  # ===========================================================================
+  test "allows HTTP 'GET' /whoami (logged in user)", %{token: token} do
+    conn =
+      conn(:get, "/whoami")
+      |> put_req_header("authorization", "Bearer " <> token)
+
+    conn = ExfwghtblogBackend.API.call(conn, @opts)
+    [content_type] = conn |> get_resp_header("content-type")
+
+    # Is our response well-formed, first of all?
+    assert conn.state == :sent
+    assert content_type |> String.contains?("application/json")
+    assert conn.status == 200
+
+    # Make sure the response structure is well-formed
+    {:ok, response} = Jason.decode(conn.resp_body)
+    assert response["e"] == "ok"
+    assert response["status"] == "whoami"
+    assert response["username"] == "test_user"
+  end
+
+  test "allows HTTP 'GET' /whoami (anonymous user)" do
+    conn = conn(:get, "/whoami")
+
+    conn = ExfwghtblogBackend.API.call(conn, @opts)
+    [content_type] = conn |> get_resp_header("content-type")
+
+    # Is our response well-formed, first of all?
+    assert conn.state == :sent
+    assert content_type |> String.contains?("application/json")
+    assert conn.status == 200
+
+    # Make sure the response structure is well-formed
+    {:ok, response} = Jason.decode(conn.resp_body)
+    assert response["e"] == "ok"
+    assert response["status"] == "whoami"
+    assert is_nil(response["username"])
   end
 end

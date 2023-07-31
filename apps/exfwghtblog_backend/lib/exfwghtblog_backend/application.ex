@@ -25,7 +25,7 @@ defmodule ExfwghtblogBackend.Application do
 
       # `api.ex`
       {Plug.Cowboy,
-       scheme: :http, plug: ExfwghtblogBackend.API, options: [ip: {127, 0, 0, 1}, port: 8080]}
+       scheme: :http, plug: ExfwghtblogBackend.API, options: [ip: {127, 0, 0, 1}, port: 8087]}
     ]
 
     opts = [strategy: :one_for_one, name: ExfwghtblogBackend.Supervisor]

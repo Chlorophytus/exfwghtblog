@@ -12,8 +12,7 @@ defmodule ExfwghtblogBackend.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      aliases: aliases()
     ]
   end
 
@@ -66,7 +65,4 @@ defmodule ExfwghtblogBackend.MixProject do
       test: ["ecto.drop --quiet", "ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
-
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
 end
