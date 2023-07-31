@@ -131,8 +131,8 @@ defmodule ExfwghtblogBackend.API do
            String.length(summary) <= summary_limit,
            String.length(body) <= body_limit
          ]) do
-
-        {:ok, poster, _claims} = conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
+        {:ok, poster, _claims} =
+          conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
 
         post = %ExfwghtblogBackend.Repo.Post{
           poster: poster,
@@ -255,7 +255,8 @@ defmodule ExfwghtblogBackend.API do
         summary: summary,
         inserted_at: inserted_at,
         updated_at: updated_at,
-        poster: poster
+        poster: poster,
+        body: body
       } ->
         {:ok, json} =
           Responses.map_json(
@@ -264,7 +265,8 @@ defmodule ExfwghtblogBackend.API do
                summary: summary,
                inserted_at: inserted_at |> NaiveDateTime.to_string(),
                updated_at: updated_at |> NaiveDateTime.to_string(),
-               poster: poster.username
+               poster: poster.username,
+               body: body
              }}
           )
           |> Responses.add_response_time(conn.private.start_time)
@@ -274,8 +276,97 @@ defmodule ExfwghtblogBackend.API do
     end
   end
 
-  # TODO: Post edit
-  # TODO: Post delete
+  # Post edit
+  put "/posts/:id_string" do
+    {id, _garbage_data} = Integer.parse(id_string || "0")
+
+    maybe_post =
+      ExfwghtblogBackend.Repo.one(
+        from(p in ExfwghtblogBackend.Repo.Post, where: p.id == ^id, preload: [:poster])
+      )
+
+    case maybe_post do
+      nil ->
+        {:ok, json} =
+          Errors.map_json(404, %{message: "That post doesn't exist"})
+          |> Responses.add_response_time(conn.private.start_time)
+          |> Jason.encode()
+
+        conn |> send_resp(404, json)
+
+      post when post.deleted ->
+        {:ok, json} =
+          Errors.map_json(410, %{message: "The poster has deleted this post"})
+          |> Responses.add_response_time(conn.private.start_time)
+          |> Jason.encode()
+
+        conn |> send_resp(410, json)
+
+      post ->
+        conn = conn |> handle_auth(post.poster)
+
+        if conn.halted do
+          conn
+        else
+          {:ok, _new_post} =
+            Ecto.Changeset.change(post, body: conn.body_params["body"])
+            |> ExfwghtblogBackend.Repo.update()
+
+          {:ok, json} =
+            Responses.map_json(:revised)
+            |> Responses.add_response_time(conn.private.start_time)
+            |> Jason.encode()
+
+          conn |> send_resp(200, json)
+        end
+    end
+  end
+
+  # Post delete
+  delete "/posts/:id_string" do
+    {id, _garbage_data} = Integer.parse(id_string || "0")
+
+    maybe_post =
+      ExfwghtblogBackend.Repo.one(
+        from(p in ExfwghtblogBackend.Repo.Post, where: p.id == ^id, preload: [:poster])
+      )
+
+    case maybe_post do
+      nil ->
+        {:ok, json} =
+          Errors.map_json(404, %{message: "That post doesn't exist"})
+          |> Responses.add_response_time(conn.private.start_time)
+          |> Jason.encode()
+
+        conn |> send_resp(404, json)
+
+      post when post.deleted ->
+        {:ok, json} =
+          Errors.map_json(410, %{message: "The poster has already deleted this post"})
+          |> Responses.add_response_time(conn.private.start_time)
+          |> Jason.encode()
+
+        conn |> send_resp(410, json)
+
+      post ->
+        conn = conn |> handle_auth(post.poster)
+
+        if conn.halted do
+          conn
+        else
+          {:ok, _struct} =
+            Ecto.Changeset.change(%ExfwghtblogBackend.Repo.Post{id: post.id}, deleted: true)
+            |> ExfwghtblogBackend.Repo.update()
+
+          {:ok, json} =
+            Responses.map_json(:deleted)
+            |> Responses.add_response_time(conn.private.start_time)
+            |> Jason.encode()
+
+          conn |> send_resp(200, json)
+        end
+    end
+  end
 
   match _ do
     {:ok, json} =
@@ -342,19 +433,37 @@ defmodule ExfwghtblogBackend.API do
     end
   end
 
-  defp handle_auth(conn) do
+  defp handle_auth(conn, user \\ nil) do
     logged_in? = conn |> Auth.authenticated?()
 
-    if logged_in? do
-      conn
-    else
-      {:ok, json} =
-        Errors.map_json(401, %{message: "You are not logged in"})
-        |> Responses.add_response_time(conn.private.start_time)
-        |> Jason.encode()
+    cond do
+      logged_in? and is_nil(user) ->
+        conn
 
-      conn |> send_resp(401, json) |> halt
-      conn
+      logged_in? ->
+        {:ok, poster, _claims} =
+          conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
+
+        if poster.id == user.id do
+          conn
+        else
+          {:ok, json} =
+            Errors.map_json(401, %{message: "You can't delete another user's post"})
+            |> Responses.add_response_time(conn.private.start_time)
+            |> Jason.encode()
+
+          conn |> send_resp(401, json) |> halt
+          conn
+        end
+
+      true ->
+        {:ok, json} =
+          Errors.map_json(401, %{message: "You are not logged in"})
+          |> Responses.add_response_time(conn.private.start_time)
+          |> Jason.encode()
+
+        conn |> send_resp(401, json) |> halt
+        conn
     end
   end
 end
