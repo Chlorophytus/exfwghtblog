@@ -157,7 +157,6 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
 
     # Make sure the response structure is well-formed
     {:ok, response} = Jason.decode(conn.resp_body)
-    IO.inspect response
     assert response["e"] == "ok"
     assert response["status"] == "post"
     assert response["data"]["body"] == "Hey, a new body!"
