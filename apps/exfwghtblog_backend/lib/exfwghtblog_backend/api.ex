@@ -117,17 +117,6 @@ defmodule ExfwghtblogBackend.API do
     end
   end
 
-  post "/logout" do
-    conn = conn |> Auth.sign_out()
-
-    {:ok, json} =
-      Responses.map_json(:logged_out)
-      |> Responses.add_response_time(conn.private.start_time)
-      |> Jason.encode()
-
-    conn |> send_resp(200, json)
-  end
-
   post "/publish" do
     conn = conn |> handle_auth()
 
@@ -457,22 +446,28 @@ defmodule ExfwghtblogBackend.API do
 
     cond do
       logged_in? and is_nil(user) ->
-        conn
+        conn |> check_totp()
 
       logged_in? ->
-        {:ok, poster, _claims} =
-          conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
+        conn = conn |> check_totp()
 
-        if poster.id == user.id do
+        if conn.halted do
           conn
         else
-          {:ok, json} =
-            Errors.map_json(401, %{message: "You can't delete another user's post"})
-            |> Responses.add_response_time(conn.private.start_time)
-            |> Jason.encode()
+          {:ok, poster, _claims} =
+            conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
 
-          conn |> send_resp(401, json) |> halt
-          conn
+          if poster.id == user.id do
+            conn
+          else
+            {:ok, json} =
+              Errors.map_json(401, %{message: "You can't modify/delete another user's post"})
+              |> Responses.add_response_time(conn.private.start_time)
+              |> Jason.encode()
+
+            conn |> send_resp(401, json) |> halt
+            conn
+          end
         end
 
       true ->
@@ -483,6 +478,32 @@ defmodule ExfwghtblogBackend.API do
 
         conn |> send_resp(401, json) |> halt
         conn
+    end
+  end
+
+  defp check_totp(conn) do
+    {:ok, user, _claims} = conn |> Auth.current_token() |> ExfwghtblogBackend.Guardian.resource_from_token()
+
+    totp_valid? = if Application.get_env(:exfwghtblog_backend, :totp_enforce_time, true) do
+      NimbleTOTP.valid?(user.totp_secret, conn.body_params["oath"], since: user.last_signin)
+    else
+      NimbleTOTP.valid?(user.totp_secret, conn.body_params["oath"])
+    end
+
+    if totp_valid? do
+      Ecto.Changeset.change(user, last_signin: DateTime.utc_now |> DateTime.truncate(:second))
+      |> ExfwghtblogBackend.Repo.update()
+
+      conn
+    else
+      {:ok, json} =
+        Errors.map_json(401, %{message: "The two-factor code provided is invalid"})
+        |> Responses.add_response_time(conn.private.start_time)
+        |> Jason.encode()
+
+      conn |> send_resp(401, json) |> halt
+
+      conn
     end
   end
 end

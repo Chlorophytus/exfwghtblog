@@ -8,9 +8,11 @@ defmodule ExfwghtblogBackend.Administration do
 
   Be careful as all users are allowed to post blog entries
   """
-  def new_user(username, password) do
+  def new_user(username, password, totp_secret) do
     ExfwghtblogBackend.Repo.insert(%ExfwghtblogBackend.Repo.User{
       username: username,
+      totp_secret: totp_secret,
+      last_signin: DateTime.utc_now() |> DateTime.truncate(:second),
       pass_hash: Argon2.hash_pwd_salt(password)
     })
   end

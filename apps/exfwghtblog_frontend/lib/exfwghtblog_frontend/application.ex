@@ -8,6 +8,7 @@ defmodule ExfwghtblogFrontend.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Finch, name: ExfwghtblogFrontend.Finch},
       {Phoenix.PubSub, name: ExfwghtblogFrontend.PubSub},
       # Start the Telemetry supervisor
       ExfwghtblogFrontend.Telemetry,

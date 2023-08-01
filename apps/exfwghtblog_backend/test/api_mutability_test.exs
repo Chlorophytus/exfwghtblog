@@ -6,7 +6,8 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
   @publish_amount 4
 
   defp create_and_log_in() do
-    ExfwghtblogBackend.Administration.new_user("test_user", "12345")
+    secret = NimbleTOTP.secret()
+    ExfwghtblogBackend.Administration.new_user("test_user", "12345",secret)
 
     conn =
       conn(
@@ -33,10 +34,10 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
     assert response["e"] == "ok"
     assert response["status"] == "logged_in"
 
-    response["token"]
+    {response["token"], secret}
   end
 
-  defp publish_many(token) do
+  defp publish_many({token, secret}) do
     for id <- 1..@publish_amount do
       conn =
         conn(
@@ -45,7 +46,8 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
           Jason.encode!(%{
             title: "Test title #{inspect(id)}",
             summary: "Test summary #{inspect(id)}",
-            body: "Test post #{inspect(id)}"
+            body: "Test post #{inspect(id)}",
+            oath: NimbleTOTP.verification_code(secret)
           })
         )
         |> put_req_header("content-type", "application/json")
@@ -75,9 +77,9 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
       Ecto.Adapters.SQL.Sandbox.mode(ExfwghtblogBackend.Repo, {:shared, self()})
     end
 
-    token = create_and_log_in()
-    token |> publish_many()
-    [token: token]
+    {token, secret} = create_and_log_in()
+    {token, secret} |> publish_many()
+    [token: token, secret: secret]
   end
 
   # ===========================================================================
@@ -117,13 +119,14 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
   end
 
   # ===========================================================================
-  test "allows HTTP 'PUT' to /posts/2 (single edit)", %{token: token} do
+  test "allows HTTP 'PUT' to /posts/2 (single edit)", %{token: token, secret: secret} do
     conn =
       conn(
         :put,
         "/posts/2",
         Jason.encode!(%{
-          body: "Hey, a new body!"
+          body: "Hey, a new body!",
+          oath: NimbleTOTP.verification_code(secret)
         })
       )
       |> put_req_header("authorization", "Bearer " <> token)
@@ -160,9 +163,9 @@ defmodule ExfwghtblogBackend.APIMutabilityTest do
   end
 
   # ===========================================================================
-  test "allows HTTP 'DELETE' to /posts/3 (single delete)", %{token: token} do
+  test "allows HTTP 'DELETE' to /posts/3 (single delete)",  %{token: token, secret: secret} do
     conn =
-      conn(:delete, "/posts/3")
+      conn(:delete, "/posts/3", %{oath: NimbleTOTP.verification_code(secret)})
       |> put_req_header("authorization", "Bearer " <> token)
       |> put_req_header("content-type", "application/json")
 

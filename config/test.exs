@@ -30,7 +30,12 @@ config :exfwghtblog_backend,
   # Blog bodies are up to 5000 characters
   body_limit: 5000,
   # Limit pages to 5 posts
-  post_fetch_count: 5
+  post_fetch_count: 5,
+  # Don't enforce TOTP grace
+  totp_enforce_time: false
+
+config :exfwghtblog_backend, :listen_ip, {127, 0, 0, 1}
+config :exfwghtblog_backend, :listen_port, 8080
 
 # Set Guardian secret
 config :exfwghtblog_backend, ExfwghtblogBackend.Guardian,

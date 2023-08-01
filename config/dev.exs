@@ -20,6 +20,11 @@ config :exfwghtblog_frontend, ExfwghtblogFrontend.Endpoint,
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
+config :exfwghtblog_frontend, :backend_api_url, "http://127.0.0.1:8080"
+
+config :exfwghtblog_backend, :listen_ip, {127, 0, 0, 1}
+config :exfwghtblog_backend, :listen_port, 8080
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

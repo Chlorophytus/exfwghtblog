@@ -2,7 +2,9 @@ defmodule ExfwghtblogFrontend.ErrorJSONTest do
   use ExfwghtblogFrontend.ConnCase, async: true
 
   test "renders 404" do
-    assert ExfwghtblogFrontend.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+    assert ExfwghtblogFrontend.ErrorJSON.render("404.json", %{}) == %{
+             errors: %{detail: "Not Found"}
+           }
   end
 
   test "renders 500" do

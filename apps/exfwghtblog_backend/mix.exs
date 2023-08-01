@@ -1,4 +1,5 @@
 defmodule ExfwghtblogBackend.MixProject do
+  alias Comeonin.PasswordHash
   use Mix.Project
 
   def project do
@@ -50,6 +51,9 @@ defmodule ExfwghtblogBackend.MixProject do
 
       # Log the remote IP address if we're using a reverse proxy
       {:remote_ip, "~> 1.1"},
+
+      # Time-based One Time Passkey
+      {:nimble_totp, "~> 1.0"},
 
       # Code well-formedness enhancements
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
