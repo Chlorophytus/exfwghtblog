@@ -39,8 +39,7 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-window.Alpine = Alpine;
-Alpine.start();
+window.Alpine = Alpine
 
 function showError(form, message) {
     function createError() {
@@ -131,3 +130,4 @@ if(editForm !== null) {
         }
     });
 }
+Alpine.start()
