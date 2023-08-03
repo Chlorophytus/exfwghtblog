@@ -17,7 +17,7 @@ config :exfwghtblog, Exfwghtblog.Repo,
 # you can enable the server option below.
 config :exfwghtblog, ExfwghtblogWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "GR88V2rSqxNmu0+bG92QkgCgzFWnO7o8SgCdfzAKwDJn6lLkfinRz+ypBcOttorE",
+  secret_key_base: "bAcUZVfoZ7xIBGGwSJKfH4Tv43PNHDH+NPCITieWTODpGHesUINpwwwhrBPfGMPM",
   server: false
 
 # In test we don't send emails.

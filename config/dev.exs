@@ -3,13 +3,14 @@ import Config
 # Configure your database
 config :exfwghtblog, Exfwghtblog.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "change_me",
   hostname: "localhost",
   database: "exfwghtblog_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# OS monitor
 config :os_mon,
   start_cpu_sup: true,
   start_disksup: true,
@@ -20,16 +21,16 @@ config :os_mon,
 # debugging and code reloading.
 #
 # The watchers configuration can be used to run external
-# watchers to your application. For example, we use it
-# with esbuild to bundle .js and .css sources.
+# watchers to your application. For example, we can use it
+# to bundle .js and .css sources.
 config :exfwghtblog, ExfwghtblogWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "SdC83hEiWx9JbbKQiZgVSrteHDgvflXYXiK75RjGrF5tv+SwIFqiTJKC0ZS2DLgB",
+  secret_key_base: "bgOtVtQfpTCoGquuNgB9qYicylS+ZsAFATfjHPt1W0e8Nq6lHz+Yuma12YB+HFgb",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
@@ -69,9 +70,8 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :exfwghtblog, dev_routes: true
-
-config :exfwghtblog, commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"])
+# RSS feed here, also commit hash
+config :exfwghtblog, dev_routes: true, rss_title: "Exfwghtblog", rss_description: "A RSS feed", commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"])
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
@@ -86,5 +86,6 @@ config :phoenix, :plug_init_mode, :runtime
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
+# Guardian secret
 config :exfwghtblog, Exfwghtblog.Guardian,
   secret_key: "mf8+KKpuvl/e3yRgT/MLQw+K8wVwhJVkPr3WtDbKD+5NtkcbCo7TuVhbP2nj6LK+"

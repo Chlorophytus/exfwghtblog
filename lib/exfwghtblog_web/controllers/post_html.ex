@@ -65,8 +65,8 @@ defmodule ExfwghtblogWeb.PostHTML do
               <p class="text-sm italic">
                 <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
                   username: @name,
-                  post_date: @inserted |> NaiveDateTime.to_string(),
-                  edit_date: @updated |> NaiveDateTime.to_string()
+                  post_date: @inserted |> NaiveDateTime.to_iso8601(),
+                  edit_date: @updated |> NaiveDateTime.to_iso8601()
                 ) %>
               </p>
             </div>
@@ -162,8 +162,8 @@ defmodule ExfwghtblogWeb.PostHTML do
       <p class="text-sm italic">
         <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
           username: @name,
-          post_date: @inserted |> NaiveDateTime.to_string(),
-          edit_date: @updated |> NaiveDateTime.to_string()
+          post_date: @inserted |> NaiveDateTime.to_iso8601(),
+          edit_date: @updated |> NaiveDateTime.to_iso8601()
         ) %>
       </p>
     </div>

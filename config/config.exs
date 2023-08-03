@@ -18,7 +18,7 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Exfwghtblog.PubSub,
-  live_view: [signing_salt: "0sXp64hg"]
+  live_view: [signing_salt: "Ly3KnOkv"]
 
 # Configures the mailer
 #
@@ -28,8 +28,6 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :exfwghtblog, Exfwghtblog.Mailer, adapter: Swoosh.Adapters.Local
-
-config :exfwghtblog, rss_title: "Exfwghtblog", rss_description: "A RSS feed"
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -43,7 +41,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.2.7",
+  version: "3.3.2",
   default: [
     args: ~w(
       --config=tailwind.config.js

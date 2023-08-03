@@ -7,7 +7,7 @@ defmodule ExfwghtblogWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_exfwghtblog_key",
-    signing_salt: "WkMVBycy",
+    signing_salt: "Yqc8tVkV",
     same_site: "Lax"
   ]
 
