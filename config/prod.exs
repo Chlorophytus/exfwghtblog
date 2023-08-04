@@ -19,3 +19,9 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :exfwghtblog,
+  # Millisecond interval for the Batch Processor
+  batch_interval: 100,
+  # How many items in the Batch Processor to process at a time
+  queue_take: 10

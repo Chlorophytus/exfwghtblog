@@ -11,7 +11,9 @@ defmodule ExfwghtblogWeb.PublishController do
 
   def publisher(conn, _params) do
     if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
-      render(conn, :publish)
+      conn
+      |> assign(:page_title, "Publish")
+      |> render(:publish)
     else
       conn
       |> put_flash(:error, gettext("You are not logged in"))

@@ -73,8 +73,6 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
 # RSS feed here, also commit hash
 config :exfwghtblog,
   dev_routes: true,
-  rss_title: "Exfwghtblog",
-  rss_description: "A RSS feed",
   commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"]),
   # Millisecond interval for the Batch Processor
   batch_interval: 100,

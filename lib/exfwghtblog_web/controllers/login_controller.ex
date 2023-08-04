@@ -10,7 +10,9 @@ defmodule ExfwghtblogWeb.LoginController do
   Renders the login page
   """
   def login(conn, _params) do
-    render(conn, :login)
+    conn
+    |> assign(:page_title, "Log In")
+    |> render(:login)
   end
 
   @doc """

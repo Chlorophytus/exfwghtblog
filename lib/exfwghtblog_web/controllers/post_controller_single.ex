@@ -34,6 +34,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
     after
       2000 ->
         conn
+        |> put_status(500)
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
         |> render("500.html")
     end
@@ -54,6 +55,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
       _ ->
         conn
+        |> put_status(400)
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
         |> render("400.html")
         |> halt()
@@ -65,6 +67,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
   # ===========================================================================
   defp render_result(conn, nil, _user_id) do
     conn
+    |> put_status(404)
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "The post could not be found")
     |> render("404.html")
@@ -72,6 +75,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
   defp render_result(conn, %Exfwghtblog.Post{deleted: true}, _user_id) do
     conn
+    |> put_status(410)
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "This post has been deleted")
     |> render("410.html")
@@ -79,6 +83,7 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
   defp render_result(conn, batch_result, user_id) do
     conn
+    |> assign(:page_title, "Post ##{batch_result.id}")
     |> put_view(html: ExfwghtblogWeb.PostHTML)
     |> render(:single,
       batch_result: batch_result,

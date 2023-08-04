@@ -19,6 +19,7 @@ defmodule ExfwghtblogWeb.PostControllerMulti do
       {:batch_done, id, batch_result} when id == batch_id ->
         conn
         |> put_view(html: ExfwghtblogWeb.PostHTML)
+        |> assign(:page_title, "Page ##{batch_result.page_offset + 1}")
         |> render(:multi,
           batch_result: batch_result,
           signed_in: Exfwghtblog.Guardian.Plug.authenticated?(conn)
@@ -26,6 +27,7 @@ defmodule ExfwghtblogWeb.PostControllerMulti do
     after
       2000 ->
         conn
+        |> put_status(500)
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
         |> render("500.html")
     end

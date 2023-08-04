@@ -122,3 +122,7 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :exfwghtblog,
+  rss_title: System.get_env("RSS_TITLE") || "Exfwghtblog",
+  rss_description: System.get_env("RSS_DESCRIPTION") || "A RSS feed"

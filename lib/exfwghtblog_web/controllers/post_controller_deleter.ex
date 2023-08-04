@@ -29,6 +29,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
 
           _ ->
             conn
+            |> put_status(401)
             |> put_view(html: ExfwghtblogWeb.ErrorHTML)
             |> put_flash(:error, "You are not logged in")
             |> render("401.html")
@@ -36,6 +37,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
     after
       2000 ->
         conn
+        |> put_status(500)
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
         |> render("500.html")
     end
@@ -56,6 +58,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
 
       _ ->
         conn
+        |> put_status(400)
         |> put_view(html: ExfwghtblogWeb.ErrorHTML)
         |> render("400.html")
         |> halt()
@@ -67,6 +70,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
   # ===========================================================================
   defp render_result(conn, nil, _user_id) do
     conn
+    |> put_status(404)
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "The post could not be found")
     |> render("404.html")
@@ -74,6 +78,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
 
   defp render_result(conn, %Exfwghtblog.Post{deleted: true}, _user_id) do
     conn
+    |> put_status(410)
     |> put_view(html: ExfwghtblogWeb.ErrorHTML)
     |> put_flash(:error, "This post has been deleted")
     |> render("410.html")
@@ -82,6 +87,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
   defp render_result(conn, batch_result, user_id) do
     conn
     |> put_view(html: ExfwghtblogWeb.PostHTML)
+    |> assign(:page_title, "Confirm Post Deletion")
     |> render(:deleter,
       batch_result: batch_result,
       user_id: user_id
