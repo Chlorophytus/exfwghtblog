@@ -14,7 +14,7 @@ defmodule Exfwghtblog.BatchProcessor do
   @impl true
   def init(args) do
     Logger.info("Starting Batch Processor")
-    {:ok, new_state(args)}
+    {:ok, new_state(args, :queue.new())}
   end
 
   @impl true
@@ -33,9 +33,16 @@ defmodule Exfwghtblog.BatchProcessor do
       %{}
     )
 
-    if not :queue.is_empty(state.event_queue) do
+    # :queue.split doesn't work if we have less than the split size.
+    # On the other hand, Elixir is fine with that in Enum.split/2.
+    # This comes at the cost of making the tail a queue again.
+    {qhead, qtail} =
+      :queue.to_list(state.event_queue)
+      |> Enum.split(state.args.queue_take)
+
+    if qhead != [] do
       results =
-        :queue.to_list(state.event_queue)
+        qhead
         |> Enum.map(&process_instruction/1)
 
       for %{task: task, from: {from, _from_alias}, event_id: id} <- results do
@@ -43,7 +50,7 @@ defmodule Exfwghtblog.BatchProcessor do
       end
     end
 
-    {:noreply, new_state(state.args)}
+    {:noreply, new_state(state.args, qtail |> :queue.from_list())}
   end
 
   @impl true
@@ -122,9 +129,9 @@ defmodule Exfwghtblog.BatchProcessor do
   # ===========================================================================
   # Private functions
   # ===========================================================================
-  defp new_state(args) do
+  defp new_state(args, queue) do
     %{
-      event_queue: :queue.new(),
+      event_queue: queue,
       batch_timer: Process.send_after(self(), :process_timer, args.batch_interval),
       args: args
     }

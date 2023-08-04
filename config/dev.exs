@@ -71,7 +71,15 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
 
 # Enable dev routes for dashboard and mailbox
 # RSS feed here, also commit hash
-config :exfwghtblog, dev_routes: true, rss_title: "Exfwghtblog", rss_description: "A RSS feed", commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"])
+config :exfwghtblog,
+  dev_routes: true,
+  rss_title: "Exfwghtblog",
+  rss_description: "A RSS feed",
+  commit_sha_result: System.cmd("git", ["rev-parse", "--short", "HEAD"]),
+  # Millisecond interval for the Batch Processor
+  batch_interval: 100,
+  # How many items in the Batch Processor to process at a time
+  queue_take: 10
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

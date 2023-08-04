@@ -1,5 +1,9 @@
 <header class="h-16 bg-grey-100 flex shadow-lg">
-  <div class="m-auto flex-row flex" x-data="{desktop : window.matchMedia('(min-width: 600px)').matches}" x-on:resize.window="desktop = window.matchMedia('(min-width: 600px)').matches">
+  <div
+    class="m-auto flex-row flex"
+    x-data="{desktop : window.matchMedia('(min-width: 600px)').matches}"
+    x-on:resize.window="desktop = window.matchMedia('(min-width: 600px)').matches"
+  >
     <.link href={~p"/"}>
       <div class="rounded-xl m-2 p-3 bg-indigo-100 shadow-md hover:bg-indigo-200">
         <.icon name="hero-home-solid" class="h-5 w-5" /> <span x-show="desktop">Home</span>
@@ -18,18 +22,21 @@
     <%= if Exfwghtblog.Guardian.Plug.authenticated?(@conn) do %>
       <.link href={~p"/publish"}>
         <div class="rounded-xl m-2 p-3 bg-yellow-100 shadow-md hover:bg-yellow-200">
-          <.icon name="hero-pencil-square-solid" class="h-5 w-5" /> <span x-show="desktop">Publish</span>
+          <.icon name="hero-pencil-square-solid" class="h-5 w-5" />
+          <span x-show="desktop">Publish</span>
         </div>
       </.link>
       <.link href={~p"/logout"} method="post">
         <div class="rounded-xl m-2 p-3 bg-green-100 shadow-md hover:bg-green-200">
-          <.icon name="hero-arrow-left-on-rectangle-solid" class="h-5 w-5" /> <span x-show="desktop">Log out</span>
+          <.icon name="hero-arrow-left-on-rectangle-solid" class="h-5 w-5" />
+          <span x-show="desktop">Log out</span>
         </div>
       </.link>
     <% else %>
       <.link href={~p"/login"}>
         <div class="rounded-xl m-2 p-3 bg-green-100 shadow-md hover:bg-green-200">
-          <.icon name="hero-arrow-right-on-rectangle-solid" class="h-5 w-5" /> <span x-show="desktop">Log in</span>
+          <.icon name="hero-arrow-right-on-rectangle-solid" class="h-5 w-5" />
+          <span x-show="desktop">Log in</span>
         </div>
       </.link>
     <% end %>
