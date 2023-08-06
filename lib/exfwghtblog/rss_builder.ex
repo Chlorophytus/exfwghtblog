@@ -81,7 +81,12 @@ defmodule Exfwghtblog.RssBuilder do
   # NOTE: Also, Credo seems to like these sorts of calls instead of using case.
   # ===========================================================================
   defp reload_generator() do
-    %{generator: EEx.compile_file("lib/exfwghtblog/rss_builder/template.eex")}
+    %{
+      generator:
+        EEx.compile_file(
+          Path.join([Application.app_dir(:exfwghtblog, "priv"), "rss_builder", "template.eex"])
+        )
+    }
   end
 
   defp get_day_of_week(1), do: "Mon"
