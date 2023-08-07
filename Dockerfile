@@ -1,6 +1,6 @@
-ARG VERSION_ELIXIR=1.14.4
-ARG VERSION_ERLANG=25.3
-ARG VERSION_OS=3.17.2
+ARG VERSION_ELIXIR=1.15.4
+ARG VERSION_ERLANG=26.0.2
+ARG VERSION_OS=3.18.2
 ARG IMAGE_BUILDER="hexpm/elixir:${VERSION_ELIXIR}-erlang-${VERSION_ERLANG}-alpine-${VERSION_OS}"
 ARG IMAGE_RUNNER="alpine:${VERSION_OS}"
 # loosely based off https://blog.logrocket.com/run-phoenix-application-docker/

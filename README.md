@@ -12,6 +12,14 @@ iex> Exfwghtblog.Administration.new_user(user, password)
 
 Be warned that all registered accounts have posting privileges.
 
+
+### Example Podman configuration
+
+Using an environment file `.env.txt`
+```
+$ podman run --net=host --env-file=.env.txt CONTAINER_ID /app/bin/exfwghtblog start
+```
+
 ### Example OTP release configuration
 
 #### Use the dev environment to release
