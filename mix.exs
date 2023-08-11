@@ -4,7 +4,7 @@ defmodule Exfwghtblog.MixProject do
   def project do
     [
       app: :exfwghtblog,
-      version: "0.5.6",
+      version: "0.6.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -61,6 +61,8 @@ defmodule Exfwghtblog.MixProject do
       {:argon2_elixir, "~> 3.0"},
       {:earmark_parser, "~> 1.4"},
       {:ecto_psql_extras, "~> 0.6", only: :dev},
+      {:petal_components, "~> 1.4"},
+
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end

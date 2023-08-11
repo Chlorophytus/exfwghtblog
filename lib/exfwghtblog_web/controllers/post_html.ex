@@ -25,11 +25,23 @@ defmodule ExfwghtblogWeb.PostHTML do
     results_heex =
       for result <- batch_result.fetched do
         case result do
-          %Exfwghtblog.Post{deleted: true} ->
+          %Exfwghtblog.Post{id: id, deleted: true, updated_at: deleted_on} ->
+            assigns =
+              assigns
+              |> assign(:post_id, id)
+              |> assign(:deleted, deleted_on)
+
             ~H"""
-            <div class="bg-slate-100 p-6 shadow-md">
-              <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
-            </div>
+            <.card>
+              <.card_content category={"Post #{@post_id}"} heading={gettext("Deleted Post")}>
+                <p><%= gettext("This post was deleted by the user who originally posted it") %></p>
+              </.card_content>
+                <.card_footer>
+                  <p class="italic text-slate-300 text-sm"><%= gettext("Deleted on %{deletion_date}",
+                    deletion_date: @deleted |> NaiveDateTime.to_iso8601()
+                  ) %></p>
+                </.card_footer>
+            </.card>
             """
 
           %Exfwghtblog.Post{
@@ -57,19 +69,20 @@ defmodule ExfwghtblogWeb.PostHTML do
               |> assign(:name, poster.username)
 
             ~H"""
-            <div class="bg-slate-100 p-6 shadow-md">
-              <h2 class="font-bold text-xl">
-                <.link class="text-blue-800" href={~p"/posts/#{@post_id}"}><%= @title %></.link>
-              </h2>
-              <p><%= @summary %></p>
-              <p class="text-sm italic">
-                <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
-                  username: @name,
-                  post_date: @inserted |> NaiveDateTime.to_iso8601(),
-                  edit_date: @updated |> NaiveDateTime.to_iso8601()
-                ) %>
-              </p>
-            </div>
+            <.a to={~p"/posts/#{@post_id}"}>
+              <.card>
+                <.card_content category={"Post #{@post_id}"} heading={@title}>
+                  <%= @summary %>
+                </.card_content>
+                <.card_footer>
+                  <p class="italic text-slate-300 text-sm"><%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
+                    username: @name,
+                    post_date: @inserted |> NaiveDateTime.to_iso8601(),
+                    edit_date: @updated |> NaiveDateTime.to_iso8601()
+                  ) %></p>
+                </.card_footer>
+              </.card>
+            </.a>
             """
 
           _other ->
@@ -90,7 +103,7 @@ defmodule ExfwghtblogWeb.PostHTML do
         <div class="pl-48">
           <%= if @offset > 0 do %>
             <.link href={~p"/posts?page=#{@offset - 1}"}>
-              <.icon name="hero-arrow-left-solid" class="h-6 w-6 left-0" />
+              <.icon name={:arrow_left} class="h-6 w-6 left-0" />
             </.link>
           <% end %>
         </div>
@@ -98,7 +111,7 @@ defmodule ExfwghtblogWeb.PostHTML do
         <div>
           <%= if @offset < (@count - 1) do %>
             <.link href={~p"/posts?page=#{@offset + 1}"}>
-              <.icon name="hero-arrow-right-solid" class="h-6 w-6 right-0" />
+              <.icon name={:arrow_right} class="h-6 w-6 right-0" />
             </.link>
           <% end %>
         </div>
@@ -147,10 +160,10 @@ defmodule ExfwghtblogWeb.PostHTML do
       <%= if @can_edit do %>
         <span class="float-right">
           <.link href={~p"/posts/#{@id}/edit"}>
-            <.icon name="hero-pencil-solid" />
+            <.icon name={:pencil} />
           </.link>
           <.link href={~p"/posts/#{@id}/delete"}>
-            <.icon name="hero-trash-solid" />
+            <.icon name={:trash} />
           </.link>
         </span>
       <% end %>
