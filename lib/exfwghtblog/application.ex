@@ -7,6 +7,17 @@ defmodule Exfwghtblog.Application do
 
   @impl true
   def start(_type, _args) do
+    :persistent_term.put(
+      Exfwghtblog.Version,
+      case Application.get_env(:exfwghtblog, :commit_sha_result) do
+        {sha, 0} ->
+          "#{Application.spec(:exfwghtblog, :vsn)}-#{sha |> String.replace_trailing("\n", "")}"
+
+        _ ->
+          Application.spec(:exfwghtblog, :vsn)
+      end
+    )
+
     children = [
       ExfwghtblogWeb.Telemetry,
       Exfwghtblog.Repo,
@@ -17,7 +28,9 @@ defmodule Exfwghtblog.Application do
       # Start a worker by calling: Exfwghtblog.Worker.start_link(arg)
       # {Exfwghtblog.Worker, arg},
       # Start to serve requests, typically the last entry
-      ExfwghtblogWeb.Endpoint
+      ExfwghtblogWeb.Endpoint,
+      Exfwghtblog.BatchSupervisor,
+      Exfwghtblog.RssSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -60,6 +60,7 @@ defmodule ExfwghtblogWeb.Router do
     post "/publish/:idx", PublishController, :edit
     delete "/publish/:idx", PublishController, :remove
   end
+
   # Other scopes may use custom stacks.
   # scope "/api", ExfwghtblogWeb do
   #   pipe_through :api
