@@ -43,6 +43,7 @@ defmodule ExfwghtblogWeb.Telemetry do
       summary("phoenix.socket_connected.duration",
         unit: {:native, :millisecond}
       ),
+      sum("phoenix.socket_drain.count"),
       summary("phoenix.channel_joined.duration",
         unit: {:native, :millisecond}
       ),
@@ -78,12 +79,7 @@ defmodule ExfwghtblogWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io"),
-
-      # Exfwghtblog Metrics
-      summary("exfwghtblog.batch_processor.congestion",
-        description: "The congestion of the batched event processor"
-      )
+      summary("vm.total_run_queue_lengths.io")
     ]
   end
 

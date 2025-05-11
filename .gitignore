@@ -35,5 +35,3 @@ exfwghtblog-*.tar
 npm-debug.log
 /assets/node_modules/
 
-.env.txt
-/priv/static/

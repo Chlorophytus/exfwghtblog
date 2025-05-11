@@ -42,8 +42,9 @@ defmodule ExfwghtblogWeb do
         formats: [:html, :json],
         layouts: [html: ExfwghtblogWeb.Layouts]
 
+      use Gettext, backend: ExfwghtblogWeb.Gettext
+
       import Plug.Conn
-      import ExfwghtblogWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -81,11 +82,13 @@ defmodule ExfwghtblogWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: ExfwghtblogWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import ExfwghtblogWeb.CoreComponents
-      import ExfwghtblogWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -105,7 +108,7 @@ defmodule ExfwghtblogWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/view/etc.
+  When used, dispatch to the appropriate controller/live_view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

@@ -7,33 +7,17 @@ defmodule Exfwghtblog.Application do
 
   @impl true
   def start(_type, _args) do
-    :persistent_term.put(
-      Exfwghtblog.Version,
-      case Application.get_env(:exfwghtblog, :commit_sha_result) do
-        {sha, 0} ->
-          "#{Application.spec(:exfwghtblog, :vsn)}-#{sha |> String.replace_trailing("\n", "")}"
-
-        _ ->
-          Application.spec(:exfwghtblog, :vsn)
-      end
-    )
-
     children = [
-      # Start the Telemetry supervisor
       ExfwghtblogWeb.Telemetry,
-      # Start the Ecto repository
       Exfwghtblog.Repo,
-      # Start the PubSub system
+      {DNSCluster, query: Application.get_env(:exfwghtblog, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Exfwghtblog.PubSub},
-      # Start Finch
+      # Start the Finch HTTP client for sending emails
       {Finch, name: Exfwghtblog.Finch},
-      # Start the Endpoint (http/https)
-      ExfwghtblogWeb.Endpoint,
       # Start a worker by calling: Exfwghtblog.Worker.start_link(arg)
-      # {Exfwghtblog.Worker, arg}
-
-      Exfwghtblog.BatchSupervisor,
-      Exfwghtblog.RssSupervisor
+      # {Exfwghtblog.Worker, arg},
+      # Start to serve requests, typically the last entry
+      ExfwghtblogWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
