@@ -28,7 +28,7 @@ defmodule ExfwghtblogWeb.PostHTML do
           %Exfwghtblog.Post{deleted: true} ->
             ~H"""
             <div class="bg-slate-100 p-6 shadow-md">
-              <h2 class="font-bold text-xl"><%= gettext("Deleted") %></h2>
+              <h2 class="font-bold text-xl">{gettext("Deleted")}</h2>
             </div>
             """
 
@@ -59,15 +59,15 @@ defmodule ExfwghtblogWeb.PostHTML do
             ~H"""
             <div class="bg-slate-100 p-6 shadow-md">
               <h2 class="font-bold text-xl">
-                <.link class="text-blue-800" href={~p"/posts/#{@post_id}"}><%= @title %></.link>
+                <.link class="text-blue-800" href={~p"/posts/#{@post_id}"}>{@title}</.link>
               </h2>
-              <p><%= @summary %></p>
+              <p>{@summary}</p>
               <p class="text-sm italic">
-                <%= gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
+                {gettext("Posted by %{username} on %{post_date}, last update %{edit_date}",
                   username: @name,
                   post_date: @inserted |> NaiveDateTime.to_iso8601(),
                   edit_date: @updated |> NaiveDateTime.to_iso8601()
-                ) %>
+                )}
               </p>
             </div>
             """
@@ -83,7 +83,7 @@ defmodule ExfwghtblogWeb.PostHTML do
 
       ~H"""
       <%= for result <- @results do %>
-        <%= result %>
+        {result}
         <br />
       <% end %>
       <div class="grid grid-cols-3">
@@ -94,7 +94,7 @@ defmodule ExfwghtblogWeb.PostHTML do
             </.link>
           <% end %>
         </div>
-        <div class="text-center w-full"><%= @offset + 1 %></div>
+        <div class="text-center w-full">{@offset + 1}</div>
         <div>
           <%= if @offset < (@count - 1) do %>
             <.link href={~p"/posts?page=#{@offset + 1}"}>
@@ -106,7 +106,7 @@ defmodule ExfwghtblogWeb.PostHTML do
       """
     else
       ~H"""
-      <h2 class="font-bold text-xl"><%= gettext("No posts in this page currently") %></h2>
+      <h2 class="font-bold text-xl">{gettext("No posts in this page currently")}</h2>
       """
     end
   end
@@ -154,17 +154,17 @@ defmodule ExfwghtblogWeb.PostHTML do
           </.link>
         </span>
       <% end %>
-      <h2 class="font-bold text-xl"><%= @title %></h2>
-      <p><%= @summary %></p>
+      <h2 class="font-bold text-xl">{@title}</h2>
+      <p>{@summary}</p>
       <br />
-      <p><%= raw(@body) %></p>
+      <p>{raw(@body)}</p>
       <br />
       <p class="text-sm italic">
-        <%= gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
+        {gettext("Posted by %{username} at %{post_date}, last update %{edit_date}",
           username: @name,
           post_date: @inserted |> NaiveDateTime.to_iso8601(),
           edit_date: @updated |> NaiveDateTime.to_iso8601()
-        ) %>
+        )}
       </p>
     </div>
     """
@@ -198,8 +198,8 @@ defmodule ExfwghtblogWeb.PostHTML do
         action={~p"/api/secure/publish/#{@id}"}
         class="w-full m-auto"
       >
-        <h2 class="font-bold text-xl"><%= @title %> <i>(editing)</i></h2>
-        <p><%= @summary %></p>
+        <h2 class="font-bold text-xl">{@title} <i>(editing)</i></h2>
+        <p>{@summary}</p>
         <br />
         <textarea
           id="edit-body"
@@ -239,8 +239,8 @@ defmodule ExfwghtblogWeb.PostHTML do
 
     ~H"""
     <div class="bg-slate-100 p-6 shadow-md">
-      <h2 class="font-bold text-xl"><%= @title %> <i>(deletion)</i></h2>
-      <p><%= @summary %></p>
+      <h2 class="font-bold text-xl">{@title} <i>(deletion)</i></h2>
+      <p>{@summary}</p>
       <br />
       <form data-idx={@id} id="delete-form" method="post" class="w-full m-auto">
         <input

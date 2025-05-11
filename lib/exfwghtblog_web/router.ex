@@ -12,14 +12,54 @@ defmodule ExfwghtblogWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+  end
+
+  pipeline :determine_authentication do
+    plug Guardian.Plug.Pipeline,
+      module: Exfwghtblog.Guardian,
+      error_handler: ExfwghtblogWeb.AuthController
+
+    plug Guardian.Plug.VerifySession, claims: %{"typ" => "access"}
+    plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
+  end
+
+  pipeline :ensure_authenticated do
+    plug Guardian.Plug.EnsureAuthenticated
+    plug Guardian.Plug.LoadResource
   end
 
   scope "/", ExfwghtblogWeb do
-    pipe_through :browser
+    pipe_through [:browser, :determine_authentication]
 
     get "/", PageController, :home
+
+    get "/posts/", PostControllerMulti, :show
+    get "/posts/:idx", PostControllerSingle, :show
+    get "/posts/:idx/edit", PostControllerEditor, :show
+    get "/posts/:idx/delete", PostControllerDeleter, :show
+
+    get "/feed", RssController, :fetch
+
+    get "/login", LoginController, :login
+    post "/logout", LoginController, :logout
+
+    get "/publish", PublishController, :publisher
   end
 
+  scope "/api", ExfwghtblogWeb do
+    pipe_through [:api, :determine_authentication]
+
+    post "/login", AuthController, :login
+  end
+
+  scope "/api/secure", ExfwghtblogWeb do
+    pipe_through [:api, :determine_authentication, :ensure_authenticated]
+
+    post "/publish", PublishController, :post
+    post "/publish/:idx", PublishController, :edit
+    delete "/publish/:idx", PublishController, :remove
+  end
   # Other scopes may use custom stacks.
   # scope "/api", ExfwghtblogWeb do
   #   pipe_through :api

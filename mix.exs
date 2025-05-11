@@ -4,8 +4,8 @@ defmodule Exfwghtblog.MixProject do
   def project do
     [
       app: :exfwghtblog,
-      version: "0.1.0",
-      elixir: "~> 1.14",
+      version: "0.6.0",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -19,7 +19,7 @@ defmodule Exfwghtblog.MixProject do
   def application do
     [
       mod: {Exfwghtblog.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -57,7 +57,13 @@ defmodule Exfwghtblog.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+
+      {:ecto_psql_extras, "~> 0.8"},
+      {:guardian, "~> 2.3"},
+      {:argon2_elixir, "~> 4.1"},
+      {:earmark_parser, "~> 1.4"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
