@@ -29,6 +29,7 @@ defmodule ExfwghtblogWeb.AuthController do
 
             conn
             |> put_view(json: ExfwghtblogWeb.AuthJSON)
+            |> put_status(200)
             |> render(:login_success, token: Exfwghtblog.Guardian.Plug.current_token(conn))
 
           error ->
