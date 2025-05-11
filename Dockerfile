@@ -32,6 +32,9 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
+# NPM/ESBuild are strange and don't want to download dependencies
+RUN npm install --prefix assets
+
 # Deploy assets, compile main codebase
 RUN mix assets.deploy
 RUN mix compile
