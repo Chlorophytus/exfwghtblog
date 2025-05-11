@@ -6,6 +6,6 @@ defmodule ExfwghtblogWeb.PageController do
     # so skip the default app layout.
     conn
     |> assign(:page_title, "Home")
-    |> render(:home, layout: false)
+    |> render(:home)
   end
 end
