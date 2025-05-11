@@ -80,10 +80,10 @@ defmodule Exfwghtblog.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind exfwghtblog", "esbuild exfwghtblog"],
+      "assets.build": ["tailwind exfwghtblog", "esbuild exfwghtblog --target=es2017"],
       "assets.deploy": [
         "tailwind exfwghtblog --minify",
-        "esbuild exfwghtblog --minify",
+        "esbuild exfwghtblog --target=es2017 --minify",
         "phx.digest"
       ]
     ]
