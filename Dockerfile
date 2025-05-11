@@ -57,5 +57,4 @@ ENV MIX_ENV="prod"
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/exfwghtblog ./
 USER nobody
 # Run
-ENTRYPOINT ["/app/bin/exfwghtblog"]
-CMD ["start"]
+ENTRYPOINT ["/app/bin/server"]
