@@ -6,7 +6,7 @@ defmodule ExfwghtblogWeb.AuthJSON do
   @doc """
   Successful login JSON
   """
-  def login_success(%{token: token}) do
+  def render("200.json", %{token: token}) do
     %{
       ok: true,
       ttl: ExfwghtblogWeb.AuthController.get_ttl_minutes(),
