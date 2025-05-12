@@ -10,7 +10,9 @@ defmodule ExfwghtblogWeb.PublishController do
   defp map_error(:not_your_entry), do: 401
 
   def publisher(conn, _params) do
-    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
+    resource = conn.assigns[:user_or_error]
+
+    if is_integer(resource) do
       conn
       |> assign(:page_title, "Publish")
       |> render(:publish)
@@ -22,12 +24,12 @@ defmodule ExfwghtblogWeb.PublishController do
   end
 
   def edit(conn, %{"idx" => idx}) do
-    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
-      user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
+    resource = conn.assigns[:user_or_error]
 
+    if is_integer(resource) do
       {:ok, body, conn} = conn |> read_body()
 
-      batch_id = Exfwghtblog.BatchProcessor.try_revise_entry(user.id, idx, body)
+      batch_id = Exfwghtblog.BatchProcessor.try_revise_entry(resource, idx, body)
 
       receive do
         {:batch_done, id, batch_result} when id == batch_id ->
@@ -61,10 +63,10 @@ defmodule ExfwghtblogWeb.PublishController do
   end
 
   def remove(conn, %{"idx" => idx}) do
-    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
-      user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
+    resource = conn.assigns[:user_or_error]
 
-      batch_id = Exfwghtblog.BatchProcessor.try_delete_entry(user.id, idx)
+    if is_integer(resource) do
+      batch_id = Exfwghtblog.BatchProcessor.try_delete_entry(resource, idx)
 
       receive do
         {:batch_done, id, batch_result} when id == batch_id ->
@@ -98,8 +100,10 @@ defmodule ExfwghtblogWeb.PublishController do
   end
 
   def post(conn, %{"title" => title, "summary" => summary, "body" => body}) do
-    if Exfwghtblog.Guardian.Plug.authenticated?(conn) do
-      user = conn |> Exfwghtblog.Guardian.Plug.current_resource()
+    resource = conn.assigns[:user_or_error]
+
+    if is_integer(resource) do
+      user = Exfwghtblog.Repo.get!(Exfwghtblog.User, resource)
 
       batch_id =
         Exfwghtblog.BatchProcessor.publish_entry(%Exfwghtblog.Post{

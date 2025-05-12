@@ -59,7 +59,6 @@ defmodule Exfwghtblog.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:ecto_psql_extras, "~> 0.8"},
-      {:guardian, "~> 2.3"},
       {:argon2_elixir, "~> 4.1"},
       {:earmark_parser, "~> 1.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}

@@ -15,22 +15,12 @@ defmodule ExfwghtblogWeb.Router do
     plug :fetch_session
   end
 
-  pipeline :determine_authentication do
-    plug Guardian.Plug.Pipeline,
-      module: Exfwghtblog.Guardian,
-      error_handler: ExfwghtblogWeb.AuthController
-
-    plug Guardian.Plug.VerifySession, claims: %{"typ" => "access"}
-    plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
-  end
-
-  pipeline :ensure_authenticated do
-    plug Guardian.Plug.EnsureAuthenticated
-    plug Guardian.Plug.LoadResource
+  pipeline :authenticate do
+    plug ExfwghtblogWeb.Authenticate
   end
 
   scope "/", ExfwghtblogWeb do
-    pipe_through [:browser, :determine_authentication]
+    pipe_through [:browser, :authenticate]
 
     get "/", PageController, :home
 
@@ -48,17 +38,12 @@ defmodule ExfwghtblogWeb.Router do
   end
 
   scope "/api", ExfwghtblogWeb do
-    pipe_through [:api, :determine_authentication]
+    pipe_through [:api, :authenticate]
 
     post "/login", AuthController, :login
-  end
-
-  scope "/api/secure", ExfwghtblogWeb do
-    pipe_through [:api, :determine_authentication, :ensure_authenticated]
-
-    post "/publish", PublishController, :post
-    post "/publish/:idx", PublishController, :edit
-    delete "/publish/:idx", PublishController, :remove
+    post "/secure/publish", PublishController, :post
+    post "/secure/publish/:idx", PublishController, :edit
+    delete "/secure/publish/:idx", PublishController, :remove
   end
 
   # Other scopes may use custom stacks.

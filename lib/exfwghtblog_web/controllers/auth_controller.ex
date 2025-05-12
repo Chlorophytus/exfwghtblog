@@ -5,8 +5,6 @@ defmodule ExfwghtblogWeb.AuthController do
   import ExfwghtblogWeb.Gettext
   use ExfwghtblogWeb, :controller
 
-  # How many minutes should we keep the user logged in?
-  def get_ttl_minutes(), do: 10
 
   defp map_error(:does_not_exist), do: 500
   defp map_error(:invalid_password), do: 401
@@ -21,16 +19,12 @@ defmodule ExfwghtblogWeb.AuthController do
       {:batch_done, id, batch_result} when id == batch_id ->
         case batch_result.status do
           :ok ->
-            conn =
-              conn
-              |> Exfwghtblog.Guardian.Plug.sign_in(batch_result.user, %{typ: "access"},
-                ttl: {get_ttl_minutes(), :minute}
-              )
+            token = Phoenix.Token.sign(ExfwghtblogWeb.Endpoint, "access", batch_result.user.id)
 
             conn
             |> put_view(json: ExfwghtblogWeb.AuthJSON)
             |> put_status(200)
-            |> render("200.json", token: Exfwghtblog.Guardian.Plug.current_token(conn))
+            |> render("200.json", token: token)
 
           error ->
             code = map_error(error)
@@ -46,28 +40,6 @@ defmodule ExfwghtblogWeb.AuthController do
         |> put_view(json: ExfwghtblogWeb.ErrorJSON)
         |> put_status(500)
         |> render("500.json")
-    end
-  end
-
-  @behaviour Guardian.Plug.ErrorHandler
-  @impl Guardian.Plug.ErrorHandler
-  def auth_error(conn, info, _opts) do
-    case info do
-      {:invalid_token, :token_expired} ->
-        conn
-        |> fetch_session()
-        |> Exfwghtblog.Guardian.Plug.sign_out()
-        |> fetch_flash()
-        |> put_flash(:error, gettext("You were logged out due to inactivity"))
-        |> redirect(to: "/")
-
-      _other ->
-        conn
-        |> fetch_session()
-        |> Exfwghtblog.Guardian.Plug.sign_out()
-        |> fetch_flash()
-        |> put_flash(:error, gettext("Authentication failed due to a server error"))
-        |> redirect(to: "/")
     end
   end
 end

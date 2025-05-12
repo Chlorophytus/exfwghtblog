@@ -17,15 +17,12 @@ defmodule ExfwghtblogWeb.PostControllerSingle do
 
     receive do
       {:batch_done, id, batch_result} when id == batch_id ->
-        resource =
-          conn
-          |> Exfwghtblog.Guardian.Plug.current_token()
-          |> Exfwghtblog.Guardian.resource_from_token()
+        resource = conn.assigns[:user_or_error]
 
         case resource do
-          {:ok, user, _claims} ->
+          user_id when is_integer(user_id) ->
             conn
-            |> render_result(batch_result, user.id)
+            |> render_result(batch_result, user_id)
 
           _ ->
             conn
