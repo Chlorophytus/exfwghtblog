@@ -9,7 +9,6 @@ defmodule ExfwghtblogWeb.AuthJSON do
   def render("200.json", %{token: token}) do
     %{
       ok: true,
-      ttl: ExfwghtblogWeb.AuthController.get_ttl_minutes(),
       token: token
     }
   end

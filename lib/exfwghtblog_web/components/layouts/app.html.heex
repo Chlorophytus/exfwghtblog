@@ -20,7 +20,7 @@
         <.icon name="hero-rss-solid" class="h-5 w-5" /> <span x-show="desktop">Feed</span>
       </div>
     </.link>
-    <%= if Exfwghtblog.Guardian.Plug.authenticated?(@conn) do %>
+    <%= if is_integer(@conn.assigns[:user_or_error]) do %>
       <.link href={~p"/publish"}>
         <div class="rounded-xl m-2 p-3 bg-yellow-100 shadow-md hover:bg-yellow-200">
           <.icon name="hero-pencil-square-solid" class="h-5 w-5" />

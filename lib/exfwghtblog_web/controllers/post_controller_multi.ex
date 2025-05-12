@@ -22,7 +22,7 @@ defmodule ExfwghtblogWeb.PostControllerMulti do
         |> assign(:page_title, "Page ##{batch_result.page_offset + 1}")
         |> render(:multi,
           batch_result: batch_result,
-          signed_in: Exfwghtblog.Guardian.Plug.authenticated?(conn)
+          signed_in: is_integer(conn.assigns[:user_or_error])
         )
     after
       2000 ->
