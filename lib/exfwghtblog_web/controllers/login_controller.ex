@@ -20,7 +20,7 @@ defmodule ExfwghtblogWeb.LoginController do
   """
   def logout(conn, _params) do
     conn
-    |> assign(:user_or_error, :invalid)
+    |> put_session(:exfwghtblog_token, nil)
     |> put_flash(:info, gettext("Logged out successfully"))
     |> redirect(to: "/posts")
   end
