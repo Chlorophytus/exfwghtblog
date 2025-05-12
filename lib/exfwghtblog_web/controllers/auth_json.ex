@@ -6,10 +6,9 @@ defmodule ExfwghtblogWeb.AuthJSON do
   @doc """
   Successful login JSON
   """
-  def render("200.json", %{token: token}) do
+  def render("200.json", _args) do
     %{
-      ok: true,
-      token: token
+      ok: true
     }
   end
 end

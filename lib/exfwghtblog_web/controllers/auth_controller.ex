@@ -22,9 +22,10 @@ defmodule ExfwghtblogWeb.AuthController do
             token = Phoenix.Token.sign(ExfwghtblogWeb.Endpoint, "access", batch_result.user.id)
 
             conn
+            |> put_session(:exfwghtblog_token, token)
             |> put_view(json: ExfwghtblogWeb.AuthJSON)
             |> put_status(200)
-            |> render("200.json", token: token)
+            |> render("200.json")
 
           error ->
             code = map_error(error)
