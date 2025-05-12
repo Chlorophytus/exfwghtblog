@@ -36,7 +36,7 @@ defmodule ExfwghtblogWeb.AuthController do
             |> render("#{code}.json", reason: error, point: :user)
         end
     after
-      3000 ->
+      5000 ->
         conn
         |> put_view(json: ExfwghtblogWeb.ErrorJSON)
         |> put_status(500)

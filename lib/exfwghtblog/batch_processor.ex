@@ -189,6 +189,7 @@ defmodule Exfwghtblog.BatchProcessor do
             if Argon2.verify_pass(password, user.pass_hash) do
               %{user: user, status: :ok}
             else
+              Argon2.no_user_verify()
               %{user: user, status: :invalid_password}
             end
           end),
