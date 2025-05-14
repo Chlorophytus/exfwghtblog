@@ -21,6 +21,6 @@ defmodule ExfwghtblogWeb.ErrorHTML do
   def render(template, assigns) do
     assigns = assigns |> Map.put_new(:layout, {ExfwghtblogWeb.Layouts, :app})
 
-    Phoenix.Component.(__MODULE__, template, assigns)
+    Phoenix.Component.render(__MODULE__, template, assigns)
   end
 end
