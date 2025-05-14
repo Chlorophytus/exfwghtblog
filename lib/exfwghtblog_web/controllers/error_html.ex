@@ -20,7 +20,6 @@ defmodule ExfwghtblogWeb.ErrorHTML do
   # "Not Found".
   def render(template, assigns) do
     assigns = assigns |> assign(:layout, {ExfwghtblogWeb.Layouts, :root})
-
-    Phoenix.Controller.render(__MODULE__, template, assigns)
+    Phoenix.View.render_to_iodata(__MODULE__, template, assigns)
   end
 end
