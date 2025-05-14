@@ -5,7 +5,6 @@ defmodule ExfwghtblogWeb.AuthController do
   import ExfwghtblogWeb.Gettext
   use ExfwghtblogWeb, :controller
 
-
   defp map_error(:does_not_exist), do: 500
   defp map_error(:invalid_password), do: 401
 

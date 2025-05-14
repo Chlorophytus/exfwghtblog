@@ -17,7 +17,7 @@ defmodule ExfwghtblogWeb.PostControllerDeleter do
 
     receive do
       {:batch_done, id, batch_result} when id == batch_id ->
-        resource = conn.assigns[:user_or_error] 
+        resource = conn.assigns[:user_or_error]
 
         case resource do
           user_id when is_integer(user_id) ->
