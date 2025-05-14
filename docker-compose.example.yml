@@ -1,0 +1,20 @@
+services:
+  database:
+    image: docker.io/library/postgres:alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: exfwghtblog
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  exfwghtblog:
+    image: localhost/exfwghtblog:latest
+    environment:
+      SECRET_KEY_BASE: PHOENIX_SECRET_KEY_GOES_HERE
+      DATABASE_URL: DATABASE_URL_GOES_HERE
+      PHX_HOST: HOST_NAME_GOES_HERE
+    ports:
+      - "4000:4000"
+
+volumes:
+  pgdata:

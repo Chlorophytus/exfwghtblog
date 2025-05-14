@@ -65,6 +65,7 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :exfwghtblog, :rss_title, (System.get_env("RSS_TITLE") || "exfwghtblog")
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
