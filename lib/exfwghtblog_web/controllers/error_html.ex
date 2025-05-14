@@ -19,7 +19,8 @@ defmodule ExfwghtblogWeb.ErrorHTML do
   # the template name. For example, "404.html" becomes
   # "Not Found".
   def render(template, assigns) do
-    assigns = assigns |> assign(:layout, {ExfwghtblogWeb.Layouts, :root})
-    Phoenix.View.render_to_iodata(__MODULE__, template, assigns)
+    assigns = assigns |> Map.put_new(:layout, {ExfwghtblogWeb.Layouts, :root})
+
+    Phoenix.Component.render(__MODULE__, template, assigns)
   end
 end
