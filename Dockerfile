@@ -21,12 +21,12 @@ ENV MIX_ENV="prod"
 COPY mix.exs mix.lock ./
 # Only get production dependencies
 RUN mix deps.get --only $MIX_ENV
+# Compile dependencies
+RUN mix deps.compile
 
 # Copy over config
 RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
-# Compile dependencies
-RUN mix deps.compile
 # Copy priv/, lib/, and assets/
 COPY priv priv
 COPY lib lib

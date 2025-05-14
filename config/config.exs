@@ -24,7 +24,8 @@ config :exfwghtblog, ExfwghtblogWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: ExfwghtblogWeb.ErrorHTML, json: ExfwghtblogWeb.ErrorJSON],
-    layout: true
+    layout: true,
+    root_layout: true
   ],
   pubsub_server: Exfwghtblog.PubSub,
   live_view: [signing_salt: "IdE0CcmQ"]
