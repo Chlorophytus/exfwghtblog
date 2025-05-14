@@ -68,7 +68,7 @@ if config_env() == :prod do
   config :exfwghtblog, :rss_title, System.get_env("RSS_TITLE") || "exfwghtblog"
 
   config :exfwghtblog,
-         :rss_title,
+         :rss_description,
          System.get_env("RSS_DESCRIPTION") || "An RSS feed genreated by exfwghtblog"
 
   # ## SSL Support
